@@ -28,14 +28,6 @@ public class GreedyCycle implements Algorithm {
             visited.add(secondNode);
         }
 
-        if (cycle.size() < nodesToSelect && cycle.size() >= 2) {
-            int thirdNode = findBestThirdNode(instance, cycle, visited);
-            if (thirdNode != -1) {
-                cycle.add(thirdNode);
-                visited.add(thirdNode);
-            }
-        }
-
         if (nodesToSelect == 1) {
             double objectiveValue = ObjectiveFunction.calculate(instance, cycle);
             return new Solution(cycle, objectiveValue, getName(), startNode);
@@ -95,38 +87,6 @@ public class GreedyCycle implements Algorithm {
             double value = instance.getDistance(fromNode, i) + instance.getNode(i).getCost();
             if (value < bestValue) {
                 bestValue = value;
-                bestNode = i;
-            }
-        }
-
-        return bestNode;
-    }
-
-    private int findBestThirdNode(Instance instance, List<Integer> cycle, Set<Integer> visited) {
-        if (cycle.size() < 2) {
-            return -1;
-        }
-
-        int firstNode = cycle.get(0);
-        int secondNode = cycle.get(1);
-
-        int bestNode = -1;
-        double bestObjective = Double.MAX_VALUE;
-
-        for (int i = 0; i < instance.getTotalNodes(); i++) {
-            if (visited.contains(i)) {
-                continue;
-            }
-
-            double objective = instance.getDistance(firstNode, secondNode) +
-                             instance.getDistance(secondNode, i) +
-                             instance.getDistance(i, firstNode) +
-                             instance.getNode(firstNode).getCost() +
-                             instance.getNode(secondNode).getCost() +
-                             instance.getNode(i).getCost();
-
-            if (objective < bestObjective) {
-                bestObjective = objective;
                 bestNode = i;
             }
         }
