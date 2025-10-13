@@ -1,5 +1,18 @@
 package org.politechnika;
 
+import org.politechnika.model.Instance;
+import org.politechnika.model.Solution;
+import org.politechnika.io.InstanceReader;
+import org.politechnika.experiment.ExperimentRunner;
+import org.politechnika.io.ResultWriter;
+import org.politechnika.visualization.SolutionVisualizer;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+
+
 public class Main {
     public static void main(String[] args) {
 
@@ -11,14 +24,14 @@ public class Main {
 
         try {
             if (saveVisualizations) {
-                java.io.File dir = new java.io.File(visualizationDir);
+                java.io.File dir = new File(visualizationDir);
                 if (!dir.exists()) {
                     dir.mkdirs();
                     System.out.println("Created output directory: " + visualizationDir);
                 }
             }
             if (saveResults) {
-                java.io.File dir = new java.io.File(resultsDir);
+                java.io.File dir = new File(resultsDir);
                 if (!dir.exists()) {
                     dir.mkdirs();
                     System.out.println("Created output directory: " + resultsDir);
@@ -26,24 +39,23 @@ public class Main {
             }
 
             String[] instanceFiles = {"TSPA.csv", "TSPB.csv"};
-            java.util.Map<String, org.politechnika.model.Instance> instances = new java.util.HashMap<>();
-            java.util.Map<String, java.util.Map<String, java.util.List<org.politechnika.model.Solution>>> allResults = new java.util.HashMap<>();
+            Map<String, Instance> instances = new HashMap<>();
+            Map<String, Map<String, List<Solution>>> allResults = new HashMap<>();
             
             for (String fileName : instanceFiles) {
-                org.politechnika.model.Instance instance = org.politechnika.io.InstanceReader.readInstance(fileName);
+                Instance instance = InstanceReader.readInstance(fileName);
                 instances.put(instance.getName(), instance);
 
-                java.util.Map<String, java.util.List<org.politechnika.model.Solution>> results = 
-                    org.politechnika.experiment.ExperimentRunner.runExperiments(instance);
+                Map<String, List<Solution>> results = ExperimentRunner.runExperiments(instance);
                 allResults.put(instance.getName(), results);
 
-                org.politechnika.experiment.ExperimentRunner.printSummary(instance.getName(), results);
+                ExperimentRunner.printSummary(instance.getName(), results);
 
                 System.out.println("BEST SOLUTIONS FOR EACH ALGORITHM");
                 
-                for (java.util.Map.Entry<String, java.util.List<org.politechnika.model.Solution>> entry : results.entrySet()) {
-                    java.util.List<org.politechnika.model.Solution> solutions = entry.getValue();
-                    org.politechnika.model.Solution best = org.politechnika.experiment.ExperimentRunner.getBestSolution(solutions);
+                for (Map.Entry<String, List<Solution>> entry : results.entrySet()) {
+                    List<Solution> solutions = entry.getValue();
+                    Solution best = ExperimentRunner.getBestSolution(solutions);
                     
                     if (best != null) {
                         System.out.println("\n" + best.getAlgorithmName() + ":");
@@ -52,22 +64,20 @@ public class Main {
                         System.out.println("  Solution: " + best.getNodeIds());
 
                         if (saveResults) {
-                            org.politechnika.io.ResultWriter.saveResults(
+                            ResultWriter.saveResults(
                                 instance.getName(), 
                                 best.getAlgorithmName(), 
                                 solutions, 
                                 resultsDir
                             );
                         }
-
                         if (showVisualization) {
-                            org.politechnika.visualization.SolutionVisualizer.show(instance, best);
+                            SolutionVisualizer.show(instance, best);
                         }
-
                         if (saveVisualizations) {
                             String safeAlgName = best.getAlgorithmName().replaceAll("[^a-zA-Z0-9]", "_");
                             String outputFile = visualizationDir + "/" + instance.getName() + "_" + safeAlgName + ".png";
-                            org.politechnika.visualization.SolutionVisualizer.saveToFile(instance, best, outputFile);
+                            SolutionVisualizer.saveToFile(instance, best, outputFile);
                         }
                     }
                 }

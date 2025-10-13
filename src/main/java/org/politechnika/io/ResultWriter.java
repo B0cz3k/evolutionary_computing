@@ -2,11 +2,11 @@ package org.politechnika.io;
 
 import org.politechnika.model.Solution;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.Map;
 
 
 public class ResultWriter {
@@ -142,7 +142,7 @@ public class ResultWriter {
             return;
         }
 
-        java.io.File dir = new java.io.File(outputDir);
+        File dir = new File(outputDir);
         if (!dir.exists()) {
             dir.mkdirs();
         }
