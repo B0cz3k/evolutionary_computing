@@ -8,7 +8,6 @@ import org.politechnika.io.ResultWriter;
 import org.politechnika.visualization.SolutionVisualizer;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
@@ -39,16 +38,11 @@ public class Main {
             }
 
             String[] instanceFiles = {"TSPA.csv", "TSPB.csv"};
-            Map<String, Instance> instances = new HashMap<>();
-            Map<String, Map<String, List<Solution>>> allResults = new HashMap<>();
             
             for (String fileName : instanceFiles) {
                 Instance instance = InstanceReader.readInstance(fileName);
-                instances.put(instance.getName(), instance);
 
                 Map<String, List<Solution>> results = ExperimentRunner.runExperiments(instance);
-                allResults.put(instance.getName(), results);
-
                 ExperimentRunner.printSummary(instance.getName(), results);
 
                 System.out.println("BEST SOLUTIONS FOR EACH ALGORITHM");

@@ -24,10 +24,6 @@ public class Instance {
         return nodes;
     }
 
-    public int[][] getDistanceMatrix() {
-        return distanceMatrix;
-    }
-
     public int getNodesToSelect() {
         return nodesToSelect;
     }
