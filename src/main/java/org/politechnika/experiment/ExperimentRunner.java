@@ -2,9 +2,8 @@ package org.politechnika.experiment;
 
 import org.politechnika.algorithm.Algorithm;
 import org.politechnika.algorithm.RandomSolution;
-import org.politechnika.algorithm.greedy_heuristics.GreedyCycle;
-import org.politechnika.algorithm.greedy_heuristics.NearestNeighborAnyPosition;
-import org.politechnika.algorithm.greedy_heuristics.NearestNeighborEnd;
+import org.politechnika.algorithm.greedy_regret.RegretK2GreedyCycle;
+import org.politechnika.algorithm.greedy_regret.RegretK2NNAny;
 import org.politechnika.io.ResultWriter;
 import org.politechnika.model.Instance;
 import org.politechnika.model.Solution;
@@ -27,11 +26,14 @@ public class ExperimentRunner {
         System.out.println("Total nodes: " + instance.getTotalNodes());
         System.out.println("Nodes to select: " + instance.getNodesToSelect());
 
-        results.put("Random", runRandomSolutions(instance));
-        results.put("NN_End", runGreedyAlgorithm(instance, new NearestNeighborEnd()));
-        results.put("NN_AnyPos", runGreedyAlgorithm(instance, new NearestNeighborAnyPosition()));
-        results.put("GreedyCycle", runGreedyAlgorithm(instance, new GreedyCycle()));
-
+//        results.put("Random", runRandomSolutions(instance));
+//        results.put("NN_End", runGreedyAlgorithm(instance, new NearestNeighborEnd()));
+//        results.put("NN_AnyPos", runGreedyAlgorithm(instance, new NearestNeighborAnyPosition()));
+//        results.put("GreedyCycle", runGreedyAlgorithm(instance, new GreedyCycle()));
+        results.put("Greedy2Regret_NN_AnyPos", runGreedyAlgorithm(instance,new RegretK2NNAny(0.0,1.0)));
+        results.put("Greedy2Regret_NN_AnyPos_Weighed", runGreedyAlgorithm(instance,new RegretK2NNAny(0.9,0.1)));
+        results.put("Greedy2Regret_Cycle", runGreedyAlgorithm(instance,new RegretK2GreedyCycle(0.0,1.0)));
+        results.put("Greedy2Regret_NN_Cycle", runGreedyAlgorithm(instance,new RegretK2GreedyCycle(0.9,0.1)));
         return results;
     }
 
