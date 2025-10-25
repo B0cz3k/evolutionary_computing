@@ -37,9 +37,14 @@ public class ExperimentRunner {
 //        results.put("Greedy2Regret_NN_AnyPos_Weighed", runGreedyAlgorithm(instance,new RegretK2NNAny(0.9,0.1)));
 //        results.put("Greedy2Regret_Cycle", runGreedyAlgorithm(instance,new RegretK2GreedyCycle(0.0,1.0)));
 //        results.put("Greedy2Regret_NN_Cycle", runGreedyAlgorithm(instance,new RegretK2GreedyCycle(0.9,0.1)));
-        results.put("LocalSearch-GC", runGreedyAlgorithm(instance,new LocalSearch(new GreedyCycle())));
-
-        results.put("LocalSearch-NN", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition())));
+        results.put("LocalSearch-NN-edge-greedy", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"edge","greedy")));
+        results.put("LocalSearch-NN-edge-steepest", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"edge","steepest")));
+        results.put("LocalSearch-NN-node-greedy", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"node","greedy")));
+        results.put("LocalSearch-NN-node-steepest", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"node","steepest")));
+        results.put("LocalSearch-Random-edge-greedy", runGreedyAlgorithm(instance,new LocalSearch(new RandomSolution(42),"edge","greedy")));
+        results.put("LocalSearch-Random-edge-steepest", runGreedyAlgorithm(instance,new LocalSearch(new RandomSolution(42),"edge","steepest")));
+        results.put("LocalSearch-Random-node-greedy", runGreedyAlgorithm(instance,new LocalSearch(new RandomSolution(42),"node","greedy")));
+        results.put("LocalSearch-Random-node-steepest", runGreedyAlgorithm(instance,new LocalSearch(new RandomSolution(42),"node","steepest")));
         return results;
     }
 
@@ -56,6 +61,7 @@ public class ExperimentRunner {
     }
 
     private static List<Solution> runGreedyAlgorithm(Instance instance, Algorithm algorithm) {
+        System.out.printf("Running %s %d times.%n", algorithm.getName(), SOLUTIONS_PER_ALGORITHM);
         List<Solution> solutions = new ArrayList<>();
         int totalNodes = instance.getTotalNodes();
 

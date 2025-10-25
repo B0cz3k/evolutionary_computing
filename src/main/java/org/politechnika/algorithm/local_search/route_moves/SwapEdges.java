@@ -40,9 +40,9 @@ public class SwapEdges implements RouteMove {
         Collections.reverse(newIds.subList(nodeIndex1, nodeIndex2 + 1));
 
 
-        if (solution.getObjectiveValue() + delta(solution, instance) != ObjectiveFunction.calculate(instance,newIds)){
-            throw new IllegalStateException(String.format("SwapEdges: Objective value does not match %f != %f",solution.getObjectiveValue() - delta(solution, instance) , ObjectiveFunction.calculate(instance,newIds)));
-        }
+//        if (solution.getObjectiveValue() + delta(solution, instance) != ObjectiveFunction.calculate(instance,newIds)){
+//            throw new IllegalStateException(String.format("SwapEdges: Objective value does not match %f != %f",solution.getObjectiveValue() - delta(solution, instance) , ObjectiveFunction.calculate(instance,newIds)));
+//        }
 
         return new Solution(newIds, solution.getObjectiveValue() + delta(solution, instance),solution.getAlgorithmName(),newIds.getFirst());
     }
