@@ -4,6 +4,7 @@ import org.politechnika.algorithm.Algorithm;
 import org.politechnika.algorithm.RandomSolution;
 import org.politechnika.algorithm.greedy_heuristics.GreedyCycle;
 import org.politechnika.algorithm.greedy_heuristics.NearestNeighborAnyPosition;
+import org.politechnika.algorithm.greedy_heuristics.NearestNeighborEnd;
 import org.politechnika.algorithm.greedy_regret.RegretK2GreedyCycle;
 import org.politechnika.algorithm.greedy_regret.RegretK2NNAny;
 import org.politechnika.algorithm.local_search.LocalSearch;
@@ -29,23 +30,42 @@ public class ExperimentRunner {
         System.out.println("Total nodes: " + instance.getTotalNodes());
         System.out.println("Nodes to select: " + instance.getNodesToSelect());
 
-//        results.put("Random", runRandomSolutions(instance));
-//        results.put("NN_End", runGreedyAlgorithm(instance, new NearestNeighborEnd()));
-//        results.put("NN_AnyPos", runGreedyAlgorithm(instance, new NearestNeighborAnyPosition()));
-//        results.put("GreedyCycle", runGreedyAlgorithm(instance, new GreedyCycle()));
-//        results.put("Greedy2Regret_NN_AnyPos", runGreedyAlgorithm(instance,new RegretK2NNAny(0.0,1.0)));
-//        results.put("Greedy2Regret_NN_AnyPos_Weighed", runGreedyAlgorithm(instance,new RegretK2NNAny(0.9,0.1)));
-//        results.put("Greedy2Regret_Cycle", runGreedyAlgorithm(instance,new RegretK2GreedyCycle(0.0,1.0)));
-//        results.put("Greedy2Regret_NN_Cycle", runGreedyAlgorithm(instance,new RegretK2GreedyCycle(0.9,0.1)));
-        results.put("LocalSearch-NN-edge-greedy", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"edge","greedy")));
-        results.put("LocalSearch-NN-edge-steepest", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"edge","steepest")));
-        results.put("LocalSearch-NN-node-greedy", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"node","greedy")));
-        results.put("LocalSearch-NN-node-steepest", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"node","steepest")));
-        results.put("LocalSearch-Random-edge-greedy", runGreedyAlgorithm(instance,new LocalSearch(new RandomSolution(42),"edge","greedy")));
-        results.put("LocalSearch-Random-edge-steepest", runGreedyAlgorithm(instance,new LocalSearch(new RandomSolution(42),"edge","steepest")));
-        results.put("LocalSearch-Random-node-greedy", runGreedyAlgorithm(instance,new LocalSearch(new RandomSolution(42),"node","greedy")));
-        results.put("LocalSearch-Random-node-steepest", runGreedyAlgorithm(instance,new LocalSearch(new RandomSolution(42),"node","steepest")));
+        //results.put("Random", runRandomSolutions(instance));
+        //results.putAll(runGreedy(instance));
+        //results.putAll(runGreedyRegret(instance));
+        results.putAll(runLocalSearch(instance));
+
         return results;
+    }
+
+    private static Map<String, List<Solution>> runGreedy(Instance instance) {
+        Map<String, List<Solution>> solutions = new HashMap<>();
+        solutions.put("NN_End", runAlgorithm(instance, new NearestNeighborEnd()));
+        solutions.put("NN_AnyPos", runAlgorithm(instance, new NearestNeighborAnyPosition()));
+        solutions.put("GreedyCycle", runAlgorithm(instance, new GreedyCycle()));
+        return solutions;
+    }
+
+    private static Map<String, List<Solution>> runGreedyRegret(Instance instance) {
+        Map<String, List<Solution>> solutions = new HashMap<>();
+        solutions.put("Greedy2Regret_NN_AnyPos", runAlgorithm(instance,new RegretK2NNAny(0.0,1.0)));
+        solutions.put("Greedy2Regret_NN_AnyPos_Weighed", runAlgorithm(instance,new RegretK2NNAny(0.9,0.1)));
+        solutions.put("Greedy2Regret_Cycle", runAlgorithm(instance,new RegretK2GreedyCycle(0.0,1.0)));
+        solutions.put("Greedy2Regret_NN_Cycle", runAlgorithm(instance,new RegretK2GreedyCycle(0.9,0.1)));
+        return solutions;
+    }
+
+    private static Map<String, List<Solution>> runLocalSearch(Instance instance) {
+        Map<String, List<Solution>> solutions = new HashMap<>();
+        solutions.put("LocalSearch-NN-edge-greedy", runAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"edge","greedy")));
+        solutions.put("LocalSearch-NN-edge-steepest", runAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"edge","steepest")));
+        solutions.put("LocalSearch-NN-node-greedy", runAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"node","greedy")));
+        solutions.put("LocalSearch-NN-node-steepest", runAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"node","steepest")));
+        solutions.put("LocalSearch-Random-edge-greedy", runAlgorithm(instance,new LocalSearch(new RandomSolution(42),"edge","greedy")));
+        solutions.put("LocalSearch-Random-edge-steepest", runAlgorithm(instance,new LocalSearch(new RandomSolution(42),"edge","steepest")));
+        solutions.put("LocalSearch-Random-node-greedy", runAlgorithm(instance,new LocalSearch(new RandomSolution(42),"node","greedy")));
+        solutions.put("LocalSearch-Random-node-steepest", runAlgorithm(instance,new LocalSearch(new RandomSolution(42),"node","steepest")));
+        return solutions;
     }
 
     private static List<Solution> runRandomSolutions(Instance instance) {
@@ -60,7 +80,7 @@ public class ExperimentRunner {
         return solutions;
     }
 
-    private static List<Solution> runGreedyAlgorithm(Instance instance, Algorithm algorithm) {
+    private static List<Solution> runAlgorithm(Instance instance, Algorithm algorithm) {
         System.out.printf("Running %s %d times.%n", algorithm.getName(), SOLUTIONS_PER_ALGORITHM);
         List<Solution> solutions = new ArrayList<>();
         int totalNodes = instance.getTotalNodes();
