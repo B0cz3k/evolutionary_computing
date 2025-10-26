@@ -8,3 +8,5 @@ Solutions written by
 
 ## Solved
 1. Greedy algorithms.
+2. Greedy regret.
+3. Local search.

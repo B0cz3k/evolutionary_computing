@@ -1,8 +1,8 @@
 Metric;Value
 Min;55792.00
 Max;71337.00
-Avg;63149.95
-MinTime;170
-MaxTime;283
-AvgTime;204.91
+Avg;63120.14
+MinTime;264
+MaxTime;478
+AvgTime;341.26
 SolutionCount;200
