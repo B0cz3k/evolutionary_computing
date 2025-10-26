@@ -67,8 +67,19 @@ public class ExperimentRunner {
 
         for (int i = 0; i < SOLUTIONS_PER_ALGORITHM; i++) {
             int startNode = i % totalNodes;
+            long startTime = System.nanoTime();
             Solution solution = algorithm.solve(instance, startNode);
-            solutions.add(solution);
+            long endTime = System.nanoTime();
+            long executionTimeMs = (endTime - startTime) / 1_000_000;
+
+            Solution timedSolution = new Solution(
+                solution.getNodeIds(),
+                solution.getObjectiveValue(),
+                solution.getAlgorithmName(),
+                solution.getStartNode(),
+                executionTimeMs
+            );
+            solutions.add(timedSolution);
         }
 
         return solutions;
