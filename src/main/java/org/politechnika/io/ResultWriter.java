@@ -22,6 +22,10 @@ public class ResultWriter {
         double max = Double.MIN_VALUE;
         double sum = 0;
 
+        long minTime = Long.MAX_VALUE;
+        long maxTime = Long.MIN_VALUE;
+        long sumTime = 0;
+
         Solution bestSolution = null;
 
         for (Solution solution : solutions) {
@@ -34,9 +38,19 @@ public class ResultWriter {
             if (value > max) {
                 max = value;
             }
+
+            long time = solution.getExecutionTimeMs();
+            sumTime += time;
+            if (time < minTime) {
+                minTime = time;
+            }
+            if (time > maxTime) {
+                maxTime = time;
+            }
         }
 
         double avg = sum / solutions.size();
+        double avgTime = (double) sumTime / solutions.size();
 
         assert bestSolution != null;
         System.out.println("Instance: " + instanceName);
@@ -45,6 +59,9 @@ public class ResultWriter {
         System.out.printf("Min: %.2f%n", min);
         System.out.printf("Max: %.2f%n", max);
         System.out.printf("Avg: %.2f%n", avg);
+        System.out.printf("Min Time: %d ms%n", minTime);
+        System.out.printf("Max Time: %d ms%n", maxTime);
+        System.out.printf("Avg Time: %.2f ms%n", avgTime);
         System.out.println("Best solution nodes: " + bestSolution.getNodeIds());
     }
 
@@ -55,8 +72,8 @@ public class ResultWriter {
                                        outputDir, safeAlgName, instanceName);
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(fileName))) {
-            writer.println("SolutionID;StartNode;ObjectiveValue;NodeIndices");
-            
+            writer.println("SolutionID;StartNode;ObjectiveValue;ExecutionTimeMs;NodeIndices");
+
             for (int i = 0; i < solutions.size(); i++) {
                 Solution solution = solutions.get(i);
                 String nodesList = solution.getNodeIds().toString()
@@ -64,10 +81,11 @@ public class ResultWriter {
                     .replace("]", "")
                     .replace(", ", " ");
                 
-                writer.printf("%d;%d;%.2f;%s%n",
+                writer.printf("%d;%d;%.2f;%d;%s%n",
                     i + 1,
                     solution.getStartNode(),
                     solution.getObjectiveValue(),
+                    solution.getExecutionTimeMs(),
                     nodesList);
             }
         }
@@ -82,16 +100,17 @@ public class ResultWriter {
                                        outputDir, safeAlgName, instanceName);
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(fileName))) {
-            writer.println("ObjectiveValue;StartNode;NodeIndices");
-            
+            writer.println("ObjectiveValue;StartNode;ExecutionTimeMs;NodeIndices");
+
             String nodesList = solution.getNodeIds().toString()
                 .replace("[", "")
                 .replace("]", "")
                 .replace(", ", " ");
             
-            writer.printf("%.2f;%d;%s%n",
+            writer.printf("%.2f;%d;%d;%s%n",
                 solution.getObjectiveValue(),
                 solution.getStartNode(),
+                solution.getExecutionTimeMs(),
                 nodesList);
         }
         
@@ -108,6 +127,10 @@ public class ResultWriter {
         double max = Double.MIN_VALUE;
         double sum = 0;
 
+        long minTime = Long.MAX_VALUE;
+        long maxTime = Long.MIN_VALUE;
+        long sumTime = 0;
+
         for (Solution solution : solutions) {
             double value = solution.getObjectiveValue();
             sum += value;
@@ -117,9 +140,19 @@ public class ResultWriter {
             if (value > max) {
                 max = value;
             }
+
+            long time = solution.getExecutionTimeMs();
+            sumTime += time;
+            if (time < minTime) {
+                minTime = time;
+            }
+            if (time > maxTime) {
+                maxTime = time;
+            }
         }
 
         double avg = sum / solutions.size();
+        double avgTime = (double) sumTime / solutions.size();
 
         String safeAlgName = algorithmName.replaceAll("[^a-zA-Z0-9]", "_");
         String fileName = String.format("%s/stats-%s-%s.csv",
@@ -130,6 +163,9 @@ public class ResultWriter {
             writer.printf("Min;%.2f%n", min);
             writer.printf("Max;%.2f%n", max);
             writer.printf("Avg;%.2f%n", avg);
+            writer.printf("MinTime;%d%n", minTime);
+            writer.printf("MaxTime;%d%n", maxTime);
+            writer.printf("AvgTime;%.2f%n", avgTime);
             writer.printf("SolutionCount;%d%n", solutions.size());
         }
         

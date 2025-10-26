@@ -2,8 +2,11 @@ package org.politechnika.experiment;
 
 import org.politechnika.algorithm.Algorithm;
 import org.politechnika.algorithm.RandomSolution;
+import org.politechnika.algorithm.greedy_heuristics.GreedyCycle;
+import org.politechnika.algorithm.greedy_heuristics.NearestNeighborAnyPosition;
 import org.politechnika.algorithm.greedy_regret.RegretK2GreedyCycle;
 import org.politechnika.algorithm.greedy_regret.RegretK2NNAny;
+import org.politechnika.algorithm.local_search.LocalSearch;
 import org.politechnika.io.ResultWriter;
 import org.politechnika.model.Instance;
 import org.politechnika.model.Solution;
@@ -30,10 +33,18 @@ public class ExperimentRunner {
 //        results.put("NN_End", runGreedyAlgorithm(instance, new NearestNeighborEnd()));
 //        results.put("NN_AnyPos", runGreedyAlgorithm(instance, new NearestNeighborAnyPosition()));
 //        results.put("GreedyCycle", runGreedyAlgorithm(instance, new GreedyCycle()));
-        results.put("Greedy2Regret_NN_AnyPos", runGreedyAlgorithm(instance,new RegretK2NNAny(0.0,1.0)));
-        results.put("Greedy2Regret_NN_AnyPos_Weighed", runGreedyAlgorithm(instance,new RegretK2NNAny(0.9,0.1)));
-        results.put("Greedy2Regret_Cycle", runGreedyAlgorithm(instance,new RegretK2GreedyCycle(0.0,1.0)));
-        results.put("Greedy2Regret_NN_Cycle", runGreedyAlgorithm(instance,new RegretK2GreedyCycle(0.9,0.1)));
+//        results.put("Greedy2Regret_NN_AnyPos", runGreedyAlgorithm(instance,new RegretK2NNAny(0.0,1.0)));
+//        results.put("Greedy2Regret_NN_AnyPos_Weighed", runGreedyAlgorithm(instance,new RegretK2NNAny(0.9,0.1)));
+//        results.put("Greedy2Regret_Cycle", runGreedyAlgorithm(instance,new RegretK2GreedyCycle(0.0,1.0)));
+//        results.put("Greedy2Regret_NN_Cycle", runGreedyAlgorithm(instance,new RegretK2GreedyCycle(0.9,0.1)));
+        results.put("LocalSearch-NN-edge-greedy", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"edge","greedy")));
+        results.put("LocalSearch-NN-edge-steepest", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"edge","steepest")));
+        results.put("LocalSearch-NN-node-greedy", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"node","greedy")));
+        results.put("LocalSearch-NN-node-steepest", runGreedyAlgorithm(instance,new LocalSearch(new NearestNeighborAnyPosition(),"node","steepest")));
+        results.put("LocalSearch-Random-edge-greedy", runGreedyAlgorithm(instance,new LocalSearch(new RandomSolution(42),"edge","greedy")));
+        results.put("LocalSearch-Random-edge-steepest", runGreedyAlgorithm(instance,new LocalSearch(new RandomSolution(42),"edge","steepest")));
+        results.put("LocalSearch-Random-node-greedy", runGreedyAlgorithm(instance,new LocalSearch(new RandomSolution(42),"node","greedy")));
+        results.put("LocalSearch-Random-node-steepest", runGreedyAlgorithm(instance,new LocalSearch(new RandomSolution(42),"node","steepest")));
         return results;
     }
 
@@ -50,13 +61,25 @@ public class ExperimentRunner {
     }
 
     private static List<Solution> runGreedyAlgorithm(Instance instance, Algorithm algorithm) {
+        System.out.printf("Running %s %d times.%n", algorithm.getName(), SOLUTIONS_PER_ALGORITHM);
         List<Solution> solutions = new ArrayList<>();
         int totalNodes = instance.getTotalNodes();
 
         for (int i = 0; i < SOLUTIONS_PER_ALGORITHM; i++) {
             int startNode = i % totalNodes;
+            long startTime = System.nanoTime();
             Solution solution = algorithm.solve(instance, startNode);
-            solutions.add(solution);
+            long endTime = System.nanoTime();
+            long executionTimeMs = (endTime - startTime) / 1_000_000;
+
+            Solution timedSolution = new Solution(
+                solution.getNodeIds(),
+                solution.getObjectiveValue(),
+                solution.getAlgorithmName(),
+                solution.getStartNode(),
+                executionTimeMs
+            );
+            solutions.add(timedSolution);
         }
 
         return solutions;

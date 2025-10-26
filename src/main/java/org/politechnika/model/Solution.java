@@ -9,12 +9,18 @@ public class Solution {
     private final double objectiveValue;
     private final String algorithmName;
     private final int startNode;
+    private final long executionTimeMs;
 
     public Solution(List<Integer> nodeIds, double objectiveValue, String algorithmName, int startNode) {
+        this(nodeIds, objectiveValue, algorithmName, startNode, 0);
+    }
+
+    public Solution(List<Integer> nodeIds, double objectiveValue, String algorithmName, int startNode, long executionTimeMs) {
         this.nodeIds = new ArrayList<>(nodeIds);
         this.objectiveValue = objectiveValue;
         this.algorithmName = algorithmName;
         this.startNode = startNode;
+        this.executionTimeMs = executionTimeMs;
     }
 
     public List<Integer> getNodeIds() {
@@ -33,9 +39,13 @@ public class Solution {
         return startNode;
     }
 
+    public long getExecutionTimeMs() {
+        return executionTimeMs;
+    }
+
     @Override
     public String toString() {
-        return String.format("Solution{algorithm=%s, startNode=%d, objective=%.2f, nodes=%s}",
-                algorithmName, startNode, objectiveValue, nodeIds);
+        return String.format("Solution{algorithm=%s, startNode=%d, objective=%.2f, time=%dms, nodes=%s}",
+                algorithmName, startNode, objectiveValue, executionTimeMs, nodeIds);
     }
 }
