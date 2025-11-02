@@ -132,13 +132,25 @@ public class SolutionVisualizer extends JPanel {
 
     public static void show(Instance instance, Solution solution) {
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("TSP Solution Visualization");
+            JFrame frame = new JFrame("TSP Solution - " + solution.getAlgorithmName());
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.add(new SolutionVisualizer(instance, solution));
             frame.pack();
-            frame.setLocationRelativeTo(null);
+
+            int offset = (int) (Math.random() * 100 + 50);
+            frame.setLocation(100 + offset, 100 + offset);
+            
             frame.setVisible(true);
+
+            frame.toFront();
+            frame.repaint();
         });
+
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     public static void saveToFile(Instance instance, Solution solution, String fileName) {

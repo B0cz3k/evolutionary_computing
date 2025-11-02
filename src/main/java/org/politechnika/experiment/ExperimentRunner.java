@@ -8,6 +8,7 @@ import org.politechnika.algorithm.greedy_heuristics.NearestNeighborEnd;
 import org.politechnika.algorithm.greedy_regret.RegretK2GreedyCycle;
 import org.politechnika.algorithm.greedy_regret.RegretK2NNAny;
 import org.politechnika.algorithm.local_search.LocalSearch;
+import org.politechnika.algorithm.local_search.LocalSearchCandidate;
 import org.politechnika.io.ResultWriter;
 import org.politechnika.model.Instance;
 import org.politechnika.model.Solution;
@@ -30,10 +31,9 @@ public class ExperimentRunner {
         System.out.println("Total nodes: " + instance.getTotalNodes());
         System.out.println("Nodes to select: " + instance.getNodesToSelect());
 
-        //results.put("Random", runRandomSolutions(instance));
-        //results.putAll(runGreedy(instance));
-        //results.putAll(runGreedyRegret(instance));
-        results.putAll(runLocalSearch(instance));
+
+        System.out.println("\n=== Candidate Local Search ===");
+        results.putAll(runCandidateLocalSearch(instance));
 
         return results;
     }
@@ -65,6 +65,19 @@ public class ExperimentRunner {
         solutions.put("LocalSearch-Random-edge-steepest", runAlgorithm(instance,new LocalSearch(new RandomSolution(42),"edge","steepest")));
         solutions.put("LocalSearch-Random-node-greedy", runAlgorithm(instance,new LocalSearch(new RandomSolution(42),"node","greedy")));
         solutions.put("LocalSearch-Random-node-steepest", runAlgorithm(instance,new LocalSearch(new RandomSolution(42),"node","steepest")));
+        return solutions;
+    }
+
+    private static Map<String, List<Solution>> runCandidateLocalSearch(Instance instance) {
+        Map<String, List<Solution>> solutions = new HashMap<>();
+
+        int[] candidateCounts = {5, 10, 15, 20};
+        
+        for (int k : candidateCounts) {
+            solutions.put(String.format("LocalSearch-Candidate-Random-edge-k%d", k), 
+                         runAlgorithm(instance, new LocalSearchCandidate(new RandomSolution(42), "edge", k)));
+        }
+        
         return solutions;
     }
 
