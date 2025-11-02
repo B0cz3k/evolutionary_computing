@@ -60,13 +60,19 @@ public class SolutionVisualizer extends JPanel {
         for (Node node : instance.getNodes()) {
             double x = PADDING + (node.getX() - minX) * scale;
             double y = getHeight() - PADDING - (node.getY() - minY) * scale;
+            float ratio = (float) node.getCost() / maxCost;
+            Color nodeColor = new Color(ratio, 1 - ratio, 0);
 
-            if (!selectedNodes.contains(node.getId())) {
-                g2d.setColor(new Color(220, 220, 220));
-                Ellipse2D circle = new Ellipse2D.Double(x - NODE_SIZE / 2.0, y - NODE_SIZE / 2.0,
-                        NODE_SIZE, NODE_SIZE);
-                g2d.fill(circle);
-            }
+            g2d.setColor(nodeColor);
+            Ellipse2D circle = new Ellipse2D.Double(x - NODE_SIZE / 2.0, y - NODE_SIZE / 2.0,
+                    NODE_SIZE, NODE_SIZE);
+            g2d.fill(circle);
+//            if (!selectedNodes.contains(node.getId())) {
+//                g2d.setColor(new Color(220, 220, 220));
+//                Ellipse2D circle = new Ellipse2D.Double(x - NODE_SIZE / 2.0, y - NODE_SIZE / 2.0,
+//                        NODE_SIZE, NODE_SIZE);
+//                g2d.fill(circle);
+//            }
         }
 
         g2d.setStroke(new BasicStroke(2));
@@ -91,13 +97,7 @@ public class SolutionVisualizer extends JPanel {
             double x = PADDING + (node.getX() - minX) * scale;
             double y = getHeight() - PADDING - (node.getY() - minY) * scale;
 
-            float ratio = (float) node.getCost() / maxCost;
-            Color nodeColor = new Color(ratio, 1 - ratio, 0);
 
-            g2d.setColor(nodeColor);
-            Ellipse2D circle = new Ellipse2D.Double(x - NODE_SIZE / 2.0, y - NODE_SIZE / 2.0,
-                    NODE_SIZE, NODE_SIZE);
-            g2d.fill(circle);
 
             g2d.setColor(Color.BLACK);
             g2d.setFont(new Font("Arial", Font.PLAIN, 9));
