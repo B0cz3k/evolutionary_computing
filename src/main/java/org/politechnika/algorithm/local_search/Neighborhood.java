@@ -47,7 +47,10 @@ public class Neighborhood implements Iterator<RouteMove> {
         } else {
             throw new RuntimeException("Unknown intraRoute: " + intraRoute);
         }
-        Collections.shuffle(routeMoves);
+
+        Random rnd = new Random(42);
+
+        Collections.shuffle(routeMoves, rnd);
     }
 
     @Override
