@@ -3,6 +3,7 @@ package org.politechnika.algorithm.local_search.route_moves;
 import org.politechnika.model.Instance;
 import org.politechnika.model.Solution;
 import org.politechnika.util.ObjectiveFunction;
+import org.politechnika.util.Tuple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,19 @@ public class ReplaceNode implements RouteMove {
         this.inSolutionNodeIndex = inSolutionNodeIndex;
         this.outSolutionNode = outSolutionNode;
     }
+
+    public Integer getInSolutionNodeIndex() {
+        return inSolutionNodeIndex;
+    }
+
+    public Integer getOutSolutionNode() {
+        return outSolutionNode;
+    }
+
+    public Tuple<Integer> getReplacedNode(Solution solution){
+        return new Tuple<>(solution.getNodeIds().get(inSolutionNodeIndex), outSolutionNode);
+    }
+
     @Override
     public double delta(Solution solution, Instance instance) {
         int size = solution.getNodeIds().size();
@@ -41,4 +55,5 @@ public class ReplaceNode implements RouteMove {
 //        }
         return new Solution(newIds, solution.getObjectiveValue() + delta(solution, instance),solution.getAlgorithmName(),newIds.getFirst());
     }
+
 }

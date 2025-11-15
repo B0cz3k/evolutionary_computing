@@ -2,7 +2,7 @@ package org.politechnika.algorithm.local_search.route_moves;
 
 import org.politechnika.model.Instance;
 import org.politechnika.model.Solution;
-import org.politechnika.util.ObjectiveFunction;
+import org.politechnika.util.Tuple;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +15,17 @@ public class SwapEdges implements RouteMove {
         this.nodeIndex1 = Math.min(nodeIndex1, nodeIndex2);
         this.nodeIndex2 = Math.max(nodeIndex1, nodeIndex2);
     }
+
+    public Tuple<Integer> firstEdge(Solution solution) {
+        List<Integer> nodes = solution.getNodeIds();
+        return new Tuple<>(nodes.get(nodeIndex1 == 0? solution.getNodeIds().size() - 1 :nodeIndex1 - 1), nodes.get(nodeIndex1));
+    }
+
+    public Tuple<Integer> secondEdge(Solution solution) {
+        List<Integer> nodes = solution.getNodeIds();
+        return new Tuple<>(nodes.get(nodeIndex2), nodes.get(nodeIndex2 == solution.getNodeIds().size() -1 ? 0 : nodeIndex2 + 1));
+    }
+
     @Override
     public double delta(Solution solution, Instance instance) {
         int prevNodeIndex = nodeIndex1 == 0? solution.getNodeIds().size() - 1 :nodeIndex1 - 1;
@@ -31,6 +42,7 @@ public class SwapEdges implements RouteMove {
                 instance.getDistance(prevNode,node2) +
                 instance.getDistance(nextNode,node1);
     }
+
 
     @Override
     public Solution applyMove(Solution solution, Instance instance) {

@@ -8,9 +8,9 @@ import org.politechnika.model.Solution;
 import javax.swing.plaf.synth.SynthTextAreaUI;
 
 public class LocalSearch implements Algorithm {
-    private Algorithm seeder;
-    private String intraRoute;
-    private String strategy;
+    Algorithm seeder;
+    private final String intraRoute;
+    private final String strategy;
     public LocalSearch(Algorithm seeder, String intraRoute, String strategy) {
         this.seeder = seeder;
         this.intraRoute = intraRoute;
@@ -30,7 +30,7 @@ public class LocalSearch implements Algorithm {
         return solution;
     }
 
-    private Solution bestSteepest(Solution solution, Instance instance) {
+    protected Solution bestSteepest(Solution solution, Instance instance) {
         Neighborhood nb = new Neighborhood(solution,instance,intraRoute);
         double bestDelta = 0;
         RouteMove bestMove = null;

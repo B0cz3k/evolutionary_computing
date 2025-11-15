@@ -3,6 +3,7 @@ package org.politechnika.algorithm.local_search.route_moves;
 import org.politechnika.model.Instance;
 import org.politechnika.model.Solution;
 import org.politechnika.util.ObjectiveFunction;
+import org.politechnika.util.Tuple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,9 @@ public class SwapNodes implements RouteMove {
     public SwapNodes(Integer nodeIndex1, Integer nodeIndex2) {
         this.nodeIndex1 = Math.min(nodeIndex1, nodeIndex2);
         this.nodeIndex2 = Math.max(nodeIndex1, nodeIndex2);
+    }
+    public Tuple<Integer> getSwappedNodes(Solution solution){
+        return new Tuple<>(solution.getNodeIds().get(nodeIndex1), solution.getNodeIds().get(nodeIndex2));
     }
     @Override
     public double delta(Solution solution, Instance instance) {
