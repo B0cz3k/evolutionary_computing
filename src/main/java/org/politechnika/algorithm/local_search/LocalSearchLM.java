@@ -12,10 +12,10 @@ import org.politechnika.util.Tuple;
 import java.util.*;
 
 public class LocalSearchLM extends LocalSearch{
-    private final ArrayList<RouteMoveWrapper> queue;
+    private final PriorityQueue<RouteMoveWrapper> queue;
     public LocalSearchLM(Algorithm seeder) {
         super(seeder, "edge", "steepest");
-        queue = new ArrayList<>();
+        queue = new PriorityQueue<>(Comparator.comparingDouble(RouteMoveWrapper::delta));
     }
 
     @Override
@@ -26,10 +26,9 @@ public class LocalSearchLM extends LocalSearch{
             edges.put(new Tuple<>(nodes.get(i), nodes.get(i+1)), i+1);
         }
 
-        int size = queue.size();
-        while (size > 0) {
-            size -= 1;
-            RouteMoveWrapper wrapper = queue.removeFirst();
+        ArrayList<RouteMoveWrapper> toAdd = new ArrayList<>();
+        while (!queue.isEmpty()) {
+            RouteMoveWrapper wrapper = queue.poll();
 
             Tuple<Integer> edge1 = wrapper.edges().x();
             Tuple<Integer> edge2 = wrapper.edges().y();
@@ -45,6 +44,7 @@ public class LocalSearchLM extends LocalSearch{
 //                    if (wrapper.delta() != move.delta(solution, instance)) {
 //                        System.out.printf("AAAAAAA %f %f\n", wrapper.delta(), move.delta(solution, instance));
 //                    }
+                    queue.addAll(toAdd);
                     return move.applyMove(solution,instance);
                 }else if (wrapper.type().equals("node")) {
                     if (solution.getNodeIds().contains(wrapper.externalNode()))continue;
@@ -52,14 +52,16 @@ public class LocalSearchLM extends LocalSearch{
 //                    if (wrapper.delta() != move.delta(solution, instance)) {
 //                        System.out.printf("BBBBB %f %f\n", wrapper.delta(), move.delta(solution, instance));
 //                    }
+                    queue.addAll(toAdd);
                     return move.applyMove(solution,instance);
                 }
 
             }
             if ((has1 && has2rev) || (has1rev && has2)) {
-                queue.add(wrapper);
+                toAdd.add(wrapper);
             }
         }
+        queue.addAll(toAdd);
 
         Neighborhood nb = new Neighborhood(solution,instance,"edge");
         double bestDelta =  0;
