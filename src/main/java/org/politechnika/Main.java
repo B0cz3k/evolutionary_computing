@@ -40,13 +40,15 @@ public class Main {
             String[] instanceFiles = {"TSPA.csv", "TSPB.csv"};
             
             for (String fileName : instanceFiles) {
+                System.out.println("Processing instance: " + fileName);
+
                 Instance instance = InstanceReader.readInstance(fileName);
 
-                Map<String, List<Solution>> results = ExperimentRunner.runExperiments(instance);
+                Map<String, List<Solution>> results = ExperimentRunner.runILSandMSLS(instance);
                 ExperimentRunner.printSummary(instance.getName(), results);
 
-                System.out.println("BEST SOLUTIONS FOR EACH ALGORITHM");
-                
+                System.out.println("Best solutions for each algorithm:");
+
                 for (Map.Entry<String, List<Solution>> entry : results.entrySet()) {
                     List<Solution> solutions = entry.getValue();
                     Solution best = ExperimentRunner.getBestSolution(solutions);
@@ -72,20 +74,22 @@ public class Main {
                             String safeAlgName = best.getAlgorithmName().replaceAll("[^a-zA-Z0-9]", "_");
                             String outputFile = visualizationDir + "/" + instance.getName() + "_" + safeAlgName + ".png";
                             SolutionVisualizer.saveToFile(instance, best, outputFile);
+                            System.out.println("  Visualization saved: " + outputFile);
                         }
                     }
                 }
             }
-            if (saveVisualizations) {
-                System.out.println("Visualizations saved to: " + visualizationDir + "/");
-            }
+
             if (saveResults) {
                 System.out.println("Results saved to: " + resultsDir + "/");
+            }
+            if (saveVisualizations) {
+                System.out.println("Visualizations saved to: " + visualizationDir + "/");
             }
             if (showVisualization) {
                 System.out.println("Close all visualization windows to exit the program.");
             }
-            
+
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
             e.printStackTrace();

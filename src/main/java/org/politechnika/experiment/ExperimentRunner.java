@@ -1,15 +1,12 @@
 package org.politechnika.experiment;
 
 import org.politechnika.algorithm.Algorithm;
+import org.politechnika.algorithm.ILS;
+import org.politechnika.algorithm.MSLS;
 import org.politechnika.algorithm.RandomSolution;
-import org.politechnika.algorithm.greedy_heuristics.GreedyCycle;
-import org.politechnika.algorithm.greedy_heuristics.NearestNeighborAnyPosition;
-import org.politechnika.algorithm.greedy_heuristics.NearestNeighborEnd;
-import org.politechnika.algorithm.greedy_regret.RegretK2GreedyCycle;
-import org.politechnika.algorithm.greedy_regret.RegretK2NNAny;
-import org.politechnika.algorithm.local_search.LocalSearch;
-import org.politechnika.algorithm.local_search.LocalSearchCandidate;
-import org.politechnika.algorithm.local_search.LocalSearchLM;
+import org.politechnika.algorithm.greedy_heuristics.*;
+import org.politechnika.algorithm.greedy_regret.*;
+import org.politechnika.algorithm.local_search.*;
 import org.politechnika.io.ResultWriter;
 import org.politechnika.model.Instance;
 import org.politechnika.model.Solution;
@@ -18,26 +15,145 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.function.Function;
 
 public class ExperimentRunner {
 
-    private static final int SOLUTIONS_PER_ALGORITHM = 200;
+    private static final int SOLUTIONS_PER_ALGORITHM = 200; // For greedy/simple LS
     private static final long RANDOM_SEED = 0;
 
-    public static Map<String, List<Solution>> runExperiments(Instance instance) {
+
+    public static Map<String, List<Solution>> runILSandMSLS(Instance instance) {
         Map<String, List<Solution>> results = new HashMap<>();
 
         System.out.println("\nRunning experiments for instance: " + instance.getName());
         System.out.println("Total nodes: " + instance.getTotalNodes());
         System.out.println("Nodes to select: " + instance.getNodesToSelect());
 
+        int mslsRuns = 20;
+        int mslsIterations = 200;
 
-        System.out.println("\n=== Candidate Local Search ===");
-        results.putAll(runLocalSearchLM(instance));
-        //results.putAll(runLocalSearch(instance));
+        List<Solution> mslsSolutions = runAlgorithm(instance, mslsRuns,
+                i -> new MSLS(mslsIterations, i)
+        );
+        results.put("MSLS", mslsSolutions);
+
+        long averageTimeMsls = calculateAverageTime(mslsSolutions);
+        System.out.printf("\nAverage MSLS execution time: %d ms%n", averageTimeMsls);
+
+        int ilsRuns = 20;
+        int perturbationStrength = 4;
+
+        List<Solution> ilsSolutions = runAlgorithm(instance, ilsRuns,
+                i -> new ILS(averageTimeMsls, i, perturbationStrength)
+        );
+        results.put("ILS", ilsSolutions);
 
         return results;
+    }
+
+    private static List<Solution> runAlgorithm(Instance instance, int runs, Function<Integer, Algorithm> algorithmFactory) {
+        List<Solution> solutions = new ArrayList<>();
+        int totalNodes = instance.getTotalNodes();
+
+        String algoName = algorithmFactory.apply(0).getName().split("\\(")[0];
+        System.out.printf("Running %s %d times.%n", algoName, runs);
+
+        for (int i = 0; i < runs; i++) {
+            int startNode = i % totalNodes;
+
+            Algorithm algorithm = algorithmFactory.apply(i);
+
+            long startTime = System.nanoTime();
+            Solution solution = algorithm.solve(instance, startNode);
+            long endTime = System.nanoTime();
+            long executionTimeMs = (endTime - startTime) / 1_000_000;
+
+            Solution timedSolution = new Solution(
+                    solution.getNodeIds(),
+                    solution.getObjectiveValue(),
+                    solution.getAlgorithmName(),
+                    solution.getStartNode(),
+                    executionTimeMs
+            );
+            solutions.add(timedSolution);
+
+            System.out.printf("  Run %d/%d: Objective = %.2f, Time = %d ms%n",
+                    i + 1, runs, solution.getObjectiveValue(), executionTimeMs);
+        }
+        return solutions;
+    }
+
+    private static List<Solution> runAlgorithm(Instance instance, Algorithm algorithm) {
+        System.out.printf("Running %s %d times.%n", algorithm.getName(), SOLUTIONS_PER_ALGORITHM);
+        List<Solution> solutions = new ArrayList<>();
+        int totalNodes = instance.getTotalNodes();
+
+        for (int i = 0; i < SOLUTIONS_PER_ALGORITHM; i++) {
+            int startNode = i % totalNodes;
+            long startTime = System.nanoTime();
+            Solution solution = algorithm.solve(instance, startNode);
+            long endTime = System.nanoTime();
+            long executionTimeMs = (endTime - startTime) / 1_000_000;
+
+            Solution timedSolution = new Solution(
+                    solution.getNodeIds(),
+                    solution.getObjectiveValue(),
+                    solution.getAlgorithmName(),
+                    solution.getStartNode(),
+                    executionTimeMs
+            );
+            solutions.add(timedSolution);
+        }
+        return solutions;
+    }
+
+
+    private static long calculateAverageTime(List<Solution> solutions) {
+        if (solutions.isEmpty()) return 0;
+        long totalTime = 0;
+        for (Solution solution : solutions) {
+            totalTime += solution.getExecutionTimeMs();
+        }
+        return totalTime / solutions.size();
+    }
+
+    public static void printSummary(String instanceName, Map<String, List<Solution>> results) {
+        System.out.println("\nSUMMARY FOR INSTANCE: " + instanceName);
+        for (Map.Entry<String, List<Solution>> entry : results.entrySet()) {
+            List<Solution> solutions = entry.getValue();
+            if (solutions.isEmpty()) continue;
+            String algorithmName = solutions.getFirst().getAlgorithmName();
+            ResultWriter.printResultsSummary(instanceName, algorithmName, solutions);
+        }
+    }
+
+    public static Solution getBestSolution(List<Solution> solutions) {
+        if (solutions.isEmpty()) {
+            return null;
+        }
+
+        Solution best = solutions.getFirst();
+        for (Solution solution : solutions) {
+            if (solution.getObjectiveValue() < best.getObjectiveValue()) {
+                best = solution;
+            }
+        }
+
+        return best;
+    }
+
+
+    private static List<Solution> runRandomSolutions(Instance instance) {
+        List<Solution> solutions = new ArrayList<>();
+
+        for (int i = 0; i < SOLUTIONS_PER_ALGORITHM; i++) {
+            RandomSolution algorithm = new RandomSolution(RANDOM_SEED + i);
+            Solution solution = algorithm.solve(instance, 0);
+            solutions.add(solution);
+        }
+
+        return solutions;
     }
 
     private static Map<String, List<Solution>> runGreedy(Instance instance) {
@@ -67,14 +183,14 @@ public class ExperimentRunner {
         Map<String, List<Solution>> solutions = new HashMap<>();
 
         int[] candidateCounts = { 15};
-        
+
         for (int k : candidateCounts) {
-            solutions.put(String.format("LocalSearch-Candidate-Random-edge-k%d", k), 
-                         runAlgorithm(instance, new LocalSearchCandidate(new RandomSolution(42), "edge", k)));
+            solutions.put(String.format("LocalSearch-Candidate-Random-edge-k%d", k),
+                    runAlgorithm(instance, new LocalSearchCandidate(new RandomSolution(42), "edge", k)));
             solutions.put(String.format("LocalSearch-Candidate-Random-node-k%d", k),
                     runAlgorithm(instance, new LocalSearchCandidate(new RandomSolution(42), "node", k)));
         }
-        
+
         return solutions;
     }
 
@@ -84,70 +200,4 @@ public class ExperimentRunner {
         return solutions;
     }
 
-    private static List<Solution> runRandomSolutions(Instance instance) {
-        List<Solution> solutions = new ArrayList<>();
-
-        for (int i = 0; i < SOLUTIONS_PER_ALGORITHM; i++) {
-            RandomSolution algorithm = new RandomSolution(RANDOM_SEED + i);
-            Solution solution = algorithm.solve(instance, 0);
-            solutions.add(solution);
-        }
-
-        return solutions;
-    }
-
-    private static List<Solution> runAlgorithm(Instance instance, Algorithm algorithm) {
-        System.out.printf("Running %s %d times.%n", algorithm.getName(), SOLUTIONS_PER_ALGORITHM);
-        List<Solution> solutions = new ArrayList<>();
-        int totalNodes = instance.getTotalNodes();
-
-        for (int i = 0; i < SOLUTIONS_PER_ALGORITHM; i++) {
-            int startNode = i % totalNodes;
-            long startTime = System.nanoTime();
-            Solution solution = algorithm.solve(instance, startNode);
-            long endTime = System.nanoTime();
-            long executionTimeMs = (endTime - startTime) / 1_000_000;
-
-            Solution timedSolution = new Solution(
-                solution.getNodeIds(),
-                solution.getObjectiveValue(),
-                solution.getAlgorithmName(),
-                solution.getStartNode(),
-                executionTimeMs
-            );
-            solutions.add(timedSolution);
-        }
-
-        return solutions;
-    }
-
-    public static void printSummary(String instanceName, Map<String, List<Solution>> results) {
-        System.out.println("\nSUMMARY FOR INSTANCE: " + instanceName);
-
-        for (Map.Entry<String, List<Solution>> entry : results.entrySet()) {
-            List<Solution> solutions = entry.getValue();
-
-            if (solutions.isEmpty()) {
-                continue;
-            }
-
-            String algorithmName = solutions.getFirst().getAlgorithmName();
-            ResultWriter.printResultsSummary(instanceName, algorithmName, solutions);
-        }
-    }
-
-    public static Solution getBestSolution(List<Solution> solutions) {
-        if (solutions.isEmpty()) {
-            return null;
-        }
-
-        Solution best = solutions.getFirst();
-        for (Solution solution : solutions) {
-            if (solution.getObjectiveValue() < best.getObjectiveValue()) {
-                best = solution;
-            }
-        }
-
-        return best;
-    }
 }
