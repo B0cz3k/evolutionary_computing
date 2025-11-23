@@ -1,5 +1,6 @@
 package org.politechnika.algorithm;
 
+import org.politechnika.algorithm.local_search.LocalSearchLM;
 import org.politechnika.model.Instance;
 import org.politechnika.model.Solution;
 import org.politechnika.algorithm.local_search.LocalSearch;
@@ -72,7 +73,7 @@ public class ILS implements Algorithm {
             }
         };
         
-        LocalSearch localSearch = new LocalSearch(wrapper, "edge", "steepest");
+        LocalSearch localSearch = new LocalSearchLM(wrapper);
         return localSearch.solve(instance, solution.getStartNode());
     }
 

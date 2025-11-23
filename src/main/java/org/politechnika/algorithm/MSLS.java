@@ -1,5 +1,6 @@
 package org.politechnika.algorithm;
 
+import org.politechnika.algorithm.local_search.LocalSearchLM;
 import org.politechnika.model.Instance;
 import org.politechnika.model.Solution;
 import org.politechnika.algorithm.local_search.LocalSearch;
@@ -27,7 +28,7 @@ public class MSLS implements Algorithm {
 
             RandomSolution randomSolution = new RandomSolution(iterationSeed);
 
-            LocalSearch localSearch = new LocalSearch(randomSolution, "edge", "steepest");
+            LocalSearch localSearch = new LocalSearchLM(randomSolution);
             Solution solution = localSearch.solve(instance, startNode);
 
             if (bestSolution == null || solution.getObjectiveValue() < bestSolution.getObjectiveValue()) {
