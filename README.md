@@ -10,5 +10,6 @@ Solutions written by
 1. Greedy algorithms.
 2. Greedy regret.
 3. Local search.
-4. Local search LM.
-5. MSLS and ILS.
+4. Candidate moves.
+5. Local search LM.
+6. MSLS and ILS.
