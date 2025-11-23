@@ -42,10 +42,9 @@ public class ExperimentRunner {
         System.out.printf("\nAverage MSLS execution time: %d ms%n", averageTimeMsls);
 
         int ilsRuns = 20;
-        int perturbationStrength = 4;
 
         List<Solution> ilsSolutions = runAlgorithm(instance, ilsRuns,
-                i -> new ILS(averageTimeMsls, i, perturbationStrength)
+                i -> new ILS(averageTimeMsls, i, 1)
         );
         results.put("ILS", ilsSolutions);
 

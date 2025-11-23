@@ -15,7 +15,7 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
 
-        boolean showVisualization = true;
+        boolean showVisualization = false;
         boolean saveVisualizations = true;
         boolean saveResults = true;
         String visualizationDir = "visualizations";

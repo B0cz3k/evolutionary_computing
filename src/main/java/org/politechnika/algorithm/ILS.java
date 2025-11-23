@@ -78,33 +78,58 @@ public class ILS implements Algorithm {
     }
 
     private Solution perturb(Solution solution, Instance instance, Random random) {
-        List<Integer> nodeIds = new ArrayList<>(solution.getNodeIds());
-        int n = nodeIds.size();
+        List<Integer> currentNodes = new ArrayList<>(solution.getNodeIds());
+        int size = currentNodes.size();
 
-        for (int swap = 0; swap < perturbationStrength; swap++) {
-            int i = random.nextInt(n);
-            int j = random.nextInt(n);
+        // DESIGN: "Stochastic Double-Bridge"
+        // We split the tour into 4 segments: A, B, C, D.
+        // Standard order: A -> B -> C -> D
+        // Perturbed order: A -> D -> C -> B
+        // This effectively swaps the middle two segments (B and C) and reverses the flow logic.
 
-            while (Math.abs(i - j) <= 1 || (i == 0 && j == n - 1) || (j == 0 && i == n - 1)) {
-                j = random.nextInt(n);
-            }
-            
-            if (i > j) {
-                int temp = i;
-                i = j;
-                j = temp;
-            }
+        // 1. Generate 3 random cut points to define the 4 segments
+        // We ensure segments have minimum length to create a genuine structural change.
+        // Indices must be: 1 <= pos1 < pos2 < pos3 < size - 1
 
-            Collections.reverse(nodeIds.subList(i + 1, j + 1));
+        // Heuristic simplification: Divide roughly by 4 to ensure spread
+        int quarter = size / 4;
+        int pos1 = 1 + random.nextInt(quarter);
+        int pos2 = pos1 + 1 + random.nextInt(quarter);
+        int pos3 = pos2 + 1 + random.nextInt(quarter);
+
+        // Fallback for very small instances or bad random rolls (just sort random cuts)
+        if (pos3 >= size - 1) {
+            System.out.println("FALLBACK");
+            pos1 = 1 + random.nextInt(size - 4);
+            pos2 = pos1 + 1 + random.nextInt(size - pos1 - 2);
+            pos3 = pos2 + 1 + random.nextInt(size - pos2 - 1);
         }
 
-        double objectiveValue = org.politechnika.util.ObjectiveFunction.calculate(instance, nodeIds);
-        
+        // 2. Define the segments
+        // Segment A: Start to pos1
+        List<Integer> segA = currentNodes.subList(0, pos1);
+        // Segment B: pos1 to pos2
+        List<Integer> segB = currentNodes.subList(pos1, pos2);
+        // Segment C: pos2 to pos3
+        List<Integer> segC = currentNodes.subList(pos2, pos3);
+        // Segment D: pos3 to End
+        List<Integer> segD = currentNodes.subList(pos3, size);
+
+        // 3. Reassemble in "Double-Bridge" order (A -> D -> C -> B)
+        List<Integer> newIds = new ArrayList<>();
+        newIds.addAll(segA);
+        newIds.addAll(segD); // Swapped
+        newIds.addAll(segC); // Original order preserved in segment
+        newIds.addAll(segB); // Swapped
+
+        // 4. Calculate new objective
+        double objectiveValue = org.politechnika.util.ObjectiveFunction.calculate(instance, newIds);
+
         return new Solution(
-            nodeIds,
-            objectiveValue,
-            "Perturbed",
-            solution.getStartNode()
+                newIds,
+                objectiveValue,
+                "Perturbed (Double-Bridge)",
+                solution.getStartNode()
         );
     }
     
