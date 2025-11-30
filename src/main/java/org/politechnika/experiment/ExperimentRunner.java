@@ -2,6 +2,7 @@ package org.politechnika.experiment;
 
 import org.politechnika.algorithm.Algorithm;
 import org.politechnika.algorithm.ILS;
+import org.politechnika.algorithm.LNS;
 import org.politechnika.algorithm.MSLS;
 import org.politechnika.algorithm.RandomSolution;
 import org.politechnika.algorithm.greedy_heuristics.*;
@@ -47,6 +48,49 @@ public class ExperimentRunner {
                 i -> new ILS(averageTimeMsls, i, 1)
         );
         results.put("ILS", ilsSolutions);
+
+        return results;
+    }
+
+    /**
+     * Run LNS experiments with and without local search.
+     * Uses the average MSLS time as the time limit.
+     */
+    public static Map<String, List<Solution>> runLNS(Instance instance) {
+        Map<String, List<Solution>> results = new HashMap<>();
+
+        System.out.println("\nRunning LNS experiments for instance: " + instance.getName());
+        System.out.println("Total nodes: " + instance.getTotalNodes());
+        System.out.println("Nodes to select: " + instance.getNodesToSelect());
+
+        // First run MSLS to get average time
+        int mslsRuns = 20;
+        int mslsIterations = 200;
+
+        List<Solution> mslsSolutions = runAlgorithm(instance, mslsRuns,
+                i -> new MSLS(mslsIterations, i)
+        );
+        results.put("MSLS", mslsSolutions);
+
+        long averageTimeMsls = calculateAverageTime(mslsSolutions);
+        System.out.printf("\nAverage MSLS execution time: %d ms (using as time limit for LNS)%n", averageTimeMsls);
+
+        int lnsRuns = 20;
+
+        // LNS with local search (steepest + edge swap)
+        // Using 50/50 weights for cost and edge (0.5, 0.5)
+        System.out.println("\n=== Running LNS WITH Local Search ===");
+        List<Solution> lnsWithLSSolutions = runAlgorithm(instance, lnsRuns,
+                i -> new LNS(averageTimeMsls, i, true, 0.3, 0.5, 0.5)
+        );
+        results.put("LNS_with_LS", lnsWithLSSolutions);
+
+        // LNS without local search
+        System.out.println("\n=== Running LNS WITHOUT Local Search ===");
+        List<Solution> lnsWithoutLSSolutions = runAlgorithm(instance, lnsRuns,
+                i -> new LNS(averageTimeMsls, i, false, 0.3, 0.5, 0.5)
+        );
+        results.put("LNS_without_LS", lnsWithoutLSSolutions);
 
         return results;
     }
