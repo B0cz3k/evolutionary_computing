@@ -1,15 +1,13 @@
 package org.politechnika.algorithm;
 
+import org.politechnika.algorithm.greedy_regret.RegretK2NNAny;
 import org.politechnika.algorithm.local_search.LocalSearchLM;
 import org.politechnika.model.Instance;
 import org.politechnika.model.Solution;
-import org.politechnika.util.ObjectiveFunction;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 
 public class LNS implements Algorithm {
@@ -158,60 +156,9 @@ public class LNS implements Algorithm {
     }
 
     private Solution repair(List<Integer> partialSolution, Instance instance, Random random) {
-        int nodesToSelect = instance.getNodesToSelect();
-        List<Integer> path = new ArrayList<>(partialSolution);
-        Set<Integer> visited = new HashSet<>(partialSolution);
-
-        double greedWeight = 0.5;
-        double regretWeight = -0.5;
-
-        while (path.size() < nodesToSelect) {
-            int bestNode = -1;
-            int bestPosition = -1;
-            double bestScore = Double.MAX_VALUE;
-
-            for (int candidateNode = 0; candidateNode < instance.getTotalNodes(); candidateNode++) {
-                if (visited.contains(candidateNode)) {
-                    continue;
-                }
-
-                double bestIncrease = Double.MAX_VALUE;
-                double secondBestIncrease = Double.MAX_VALUE;
-                int bestLocalPosition = -1;
-
-                for (int position = 0; position <= path.size(); position++) {
-                    double increase = ObjectiveFunction.calculateInsertionCost(
-                            instance, path, candidateNode, position);
-
-                    if (increase < bestIncrease) {
-                        secondBestIncrease = bestIncrease;
-                        bestIncrease = increase;
-                        bestLocalPosition = position;
-                    } else if (increase < secondBestIncrease) {
-                        secondBestIncrease = increase;
-                    }
-                }
-
-                double regret = secondBestIncrease - bestIncrease;
-                double score = regretWeight * regret + greedWeight * bestIncrease;
-
-                if (score < bestScore) {
-                    bestScore = score;
-                    bestNode = candidateNode;
-                    bestPosition = bestLocalPosition;
-                }
-            }
-
-            if (bestNode == -1) {
-                throw new RuntimeException("Could not find next node to add during repair");
-            }
-
-            path.add(bestPosition, bestNode);
-            visited.add(bestNode);
-        }
-
-        double objectiveValue = ObjectiveFunction.calculate(instance, path);
-        return new Solution(path, objectiveValue, "LNS-Repaired", 0);
+        RegretK2NNAny regretAlgorithm = new RegretK2NNAny(0.5, 0.5);
+        int startNode = partialSolution.isEmpty() ? 0 : partialSolution.get(0);
+        return regretAlgorithm.solveFromPartialSolution(instance, partialSolution, startNode);
     }
 
     private Solution applyLocalSearch(Solution solution, Instance instance) {

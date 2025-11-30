@@ -19,18 +19,20 @@ public class RegretK2NNAny implements Algorithm {
             throw new IllegalArgumentException("Arguments need to be greater or equal 0!");
         }
         this.greedWeight = greedWeight;
-        //So that we can search for the min score which means min greed and max regret
         this.regretWeight = -1.0*regretWeight;
     }
 
     @Override
     public Solution solve(Instance instance, int startNode) {
-        int nodesToSelect = instance.getNodesToSelect();
-        List<Integer> path = new ArrayList<>();
-        Set<Integer> visited = new HashSet<>();
+        List<Integer> initialPath = new ArrayList<>();
+        initialPath.add(startNode);
+        return solveFromPartialSolution(instance, initialPath, startNode);
+    }
 
-        path.add(startNode);
-        visited.add(startNode);
+    public Solution solveFromPartialSolution(Instance instance, List<Integer> partialSolution, int startNode) {
+        int nodesToSelect = instance.getNodesToSelect();
+        List<Integer> path = new ArrayList<>(partialSolution);
+        Set<Integer> visited = new HashSet<>(partialSolution);
 
         while (path.size() < nodesToSelect) {
             int bestNode = -1;
@@ -42,18 +44,15 @@ public class RegretK2NNAny implements Algorithm {
                     continue;
                 }
 
-                //Track two lowest increases
                 double bestIncrease = Double.MAX_VALUE;
                 double secondBestIncrease = Double.MAX_VALUE;
 
-                //Track the best insertion position
                 int bestLocalPosition = -1;
 
                 for (int position = 0; position <= path.size(); position++) {
                     double increase = ObjectiveFunction.calculateInsertionCost(
                             instance, path, candidateNode, position);
 
-                    //Ghetto priority queue
                     if (increase < bestIncrease) {
                         secondBestIncrease = bestIncrease;
                         bestIncrease = increase;
