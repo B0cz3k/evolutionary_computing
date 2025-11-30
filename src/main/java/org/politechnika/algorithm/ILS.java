@@ -31,7 +31,7 @@ public class ILS implements Algorithm {
         localSearchRuns = 0;
 
         RandomSolution randomSolution = new RandomSolution(seed);
-        LocalSearch localSearch = new LocalSearch(randomSolution, "edge", "steepest");
+        LocalSearch localSearch = new LocalSearchLM(randomSolution);
         Solution currentSolution = localSearch.solve(instance, startNode);
         localSearchRuns++;
         
