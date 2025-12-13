@@ -17,45 +17,42 @@ public class SwapEdges implements RouteMove {
     }
 
     public Tuple<Integer> firstEdge(Solution solution) {
-        List<Integer> nodes = solution.getNodeIds();
-        return new Tuple<>(nodes.get(nodeIndex1 == 0? solution.getNodeIds().size() - 1 :nodeIndex1 - 1), nodes.get(nodeIndex1));
+        int size = solution.size();
+        int prevIndex = nodeIndex1 == 0 ? size - 1 : nodeIndex1 - 1;
+        return new Tuple<>(solution.getNodeAt(prevIndex), solution.getNodeAt(nodeIndex1));
     }
 
     public Tuple<Integer> secondEdge(Solution solution) {
-        List<Integer> nodes = solution.getNodeIds();
-        return new Tuple<>(nodes.get(nodeIndex2), nodes.get(nodeIndex2 == solution.getNodeIds().size() -1 ? 0 : nodeIndex2 + 1));
+        int size = solution.size();
+        int nextIndex = nodeIndex2 == size - 1 ? 0 : nodeIndex2 + 1;
+        return new Tuple<>(solution.getNodeAt(nodeIndex2), solution.getNodeAt(nextIndex));
     }
 
     @Override
     public double delta(Solution solution, Instance instance) {
-        int prevNodeIndex = nodeIndex1 == 0? solution.getNodeIds().size() - 1 :nodeIndex1 - 1;
-        int nextNodeIndex = nodeIndex2 == solution.getNodeIds().size() -1 ? 0 : nodeIndex2 + 1;
+        int size = solution.size();
+        int prevNodeIndex = nodeIndex1 == 0 ? size - 1 : nodeIndex1 - 1;
+        int nextNodeIndex = nodeIndex2 == size - 1 ? 0 : nodeIndex2 + 1;
 
-        Integer prevNode = solution.getNodeIds().get(prevNodeIndex);
-        Integer nextNode = solution.getNodeIds().get(nextNodeIndex);
-        Integer node1 = solution.getNodeIds().get(nodeIndex1);
-        Integer node2 = solution.getNodeIds().get(nodeIndex2);
+        int prevNode = solution.getNodeAt(prevNodeIndex);
+        int nextNode = solution.getNodeAt(nextNodeIndex);
+        int node1 = solution.getNodeAt(nodeIndex1);
+        int node2 = solution.getNodeAt(nodeIndex2);
 
-
-        return -instance.getDistance(prevNode,node1) -
-                instance.getDistance(nextNode,node2) +
-                instance.getDistance(prevNode,node2) +
-                instance.getDistance(nextNode,node1);
+        return -instance.getDistance(prevNode, node1) -
+                instance.getDistance(nextNode, node2) +
+                instance.getDistance(prevNode, node2) +
+                instance.getDistance(nextNode, node1);
     }
 
 
     @Override
     public Solution applyMove(Solution solution, Instance instance) {
-        List<Integer> original = solution.getNodeIds();
-
-        List<Integer> newIds = new ArrayList<>(original);
+        // Use getNodeIds() here since we need to modify the list
+        List<Integer> newIds = solution.getNodeIds();
         Collections.reverse(newIds.subList(nodeIndex1, nodeIndex2 + 1));
 
-
-//        if (solution.getObjectiveValue() + delta(solution, instance) != ObjectiveFunction.calculate(instance,newIds)){
-//            throw new IllegalStateException(String.format("SwapEdges: Objective value does not match %f != %f",solution.getObjectiveValue() - delta(solution, instance) , ObjectiveFunction.calculate(instance,newIds)));
-//        }
-
-        return new Solution(newIds, solution.getObjectiveValue() + delta(solution, instance),solution.getAlgorithmName(),newIds.getFirst());
+        double newObjective = solution.getObjectiveValue() + delta(solution, instance);
+        return new Solution(newIds, newObjective, solution.getAlgorithmName(), newIds.getFirst());
     }
 }

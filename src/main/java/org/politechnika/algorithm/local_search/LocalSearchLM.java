@@ -21,10 +21,14 @@ public class LocalSearchLM extends LocalSearch{
     @Override
     protected Solution bestSteepest(Solution solution, Instance instance) {
         HashMap<Tuple<Integer>, Integer> edges = new HashMap<>();
-        List<Integer> nodes = solution.getNodeIds();
-        for (int i = 0; i < nodes.size()-1;i++){
-            edges.put(new Tuple<>(nodes.get(i), nodes.get(i+1)), i+1);
+        List<Integer> nodes = solution.getNodeIdsReadOnly();
+        int size = nodes.size();
+        for (int i = 0; i < size - 1; i++) {
+            edges.put(new Tuple<>(nodes.get(i), nodes.get(i + 1)), i + 1);
         }
+        
+        // Create a set for fast contains check
+        Set<Integer> nodeSet = new HashSet<>(nodes);
 
         ArrayList<RouteMoveWrapper> toAdd = new ArrayList<>();
         while (!queue.isEmpty()) {
@@ -40,22 +44,15 @@ public class LocalSearchLM extends LocalSearch{
 
             if ((has1 && has2 && edges.get(edge1) < edges.get(edge2)) || (has1rev && has2rev && edges.get(edge1.reversed()) > edges.get(edge2.reversed()))) {
                 if (wrapper.type().equals("edge")) {
-                    SwapEdges move = has1? new SwapEdges(edges.get(edge1), edges.get(edge2)-1) : new SwapEdges(edges.get(edge2.reversed()), edges.get(edge1.reversed())-1);
-//                    if (wrapper.delta() != move.delta(solution, instance)) {
-//                        System.out.printf("AAAAAAA %f %f\n", wrapper.delta(), move.delta(solution, instance));
-//                    }
+                    SwapEdges move = has1 ? new SwapEdges(edges.get(edge1), edges.get(edge2) - 1) : new SwapEdges(edges.get(edge2.reversed()), edges.get(edge1.reversed()) - 1);
                     queue.addAll(toAdd);
-                    return move.applyMove(solution,instance);
-                }else if (wrapper.type().equals("node")) {
-                    if (solution.getNodeIds().contains(wrapper.externalNode()))continue;
-                    ReplaceNode move = has1? new ReplaceNode(edges.get(edge1),wrapper.externalNode()) :  new ReplaceNode(edges.get(edge2.reversed()), wrapper.externalNode());
-//                    if (wrapper.delta() != move.delta(solution, instance)) {
-//                        System.out.printf("BBBBB %f %f\n", wrapper.delta(), move.delta(solution, instance));
-//                    }
+                    return move.applyMove(solution, instance);
+                } else if (wrapper.type().equals("node")) {
+                    if (nodeSet.contains(wrapper.externalNode())) continue;
+                    ReplaceNode move = has1 ? new ReplaceNode(edges.get(edge1), wrapper.externalNode()) : new ReplaceNode(edges.get(edge2.reversed()), wrapper.externalNode());
                     queue.addAll(toAdd);
-                    return move.applyMove(solution,instance);
+                    return move.applyMove(solution, instance);
                 }
-
             }
             if ((has1 && has2rev) || (has1rev && has2)) {
                 toAdd.add(wrapper);
@@ -63,8 +60,8 @@ public class LocalSearchLM extends LocalSearch{
         }
         queue.addAll(toAdd);
 
-        Neighborhood nb = new Neighborhood(solution,instance,"edge");
-        double bestDelta =  0;
+        Neighborhood nb = new Neighborhood(solution, instance, "edge");
+        double bestDelta = 0;
         RouteMove bestMove = null;
 
         while (nb.hasNext()) {
@@ -76,19 +73,20 @@ public class LocalSearchLM extends LocalSearch{
                 bestDelta = delta;
                 bestMove = rm;
             }
-            if(delta < 0){
+            if (delta < 0) {
                 if (rm instanceof SwapEdges swapEdges) {
                     queue.add(new RouteMoveWrapper(new Tuple<>(swapEdges.firstEdge(solution), swapEdges.secondEdge(solution)), delta, "edge", null));
-                }
-                else if (rm instanceof ReplaceNode replaceNode) {
+                } else if (rm instanceof ReplaceNode replaceNode) {
                     int inNode = replaceNode.getInSolutionNodeIndex();
-                    Tuple<Integer> edge1 = new Tuple<>(nodes.get(inNode == 0? nodes.size() -1 : inNode-1), nodes.get(inNode));
-                    Tuple<Integer> edge2 = new Tuple<>(nodes.get(inNode),nodes.get(inNode == nodes.size() -1? 0:inNode + 1));
-                    queue.add(new RouteMoveWrapper(new Tuple<>(edge1,edge2), delta, "node", replaceNode.getOutSolutionNode()));
+                    int prevIdx = inNode == 0 ? size - 1 : inNode - 1;
+                    int nextIdx = inNode == size - 1 ? 0 : inNode + 1;
+                    Tuple<Integer> e1 = new Tuple<>(nodes.get(prevIdx), nodes.get(inNode));
+                    Tuple<Integer> e2 = new Tuple<>(nodes.get(inNode), nodes.get(nextIdx));
+                    queue.add(new RouteMoveWrapper(new Tuple<>(e1, e2), delta, "node", replaceNode.getOutSolutionNode()));
                 }
             }
         }
-        return bestMove == null? solution:bestMove.applyMove(solution, instance);
+        return bestMove == null ? solution : bestMove.applyMove(solution, instance);
     }
 
     @Override

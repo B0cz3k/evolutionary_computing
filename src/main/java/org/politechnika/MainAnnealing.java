@@ -12,14 +12,14 @@ import java.util.Map;
 import java.util.List;
 
 
-public class Main {
+public class MainAnnealing {
     public static void main(String[] args) {
 
         boolean showVisualization = false;
         boolean saveVisualizations = true;
         boolean saveResults = true;
-        String visualizationDir = "visualizations/hybrid";
-        String resultsDir = "results/hybrid";
+        String visualizationDir = "visualizations/annealing";
+        String resultsDir = "results/annealing";
 
         try {
             if (saveVisualizations) {
@@ -89,7 +89,7 @@ public class Main {
             }
 
             System.out.println("\n" + "=".repeat(80));
-            System.out.println("EXPERIMENT COMPLETED");
+            System.out.println("DUAL ANNEALING EXPERIMENT COMPLETED");
             System.out.println("=".repeat(80));
             
             if (saveResults) {

@@ -1,6 +1,8 @@
 package org.politechnika.experiment;
 
 import org.politechnika.algorithm.Algorithm;
+import org.politechnika.algorithm.DualAnnealing;
+import org.politechnika.algorithm.HybridEvolutionary;
 import org.politechnika.algorithm.ILS;
 import org.politechnika.algorithm.LNS;
 import org.politechnika.algorithm.MSLS;
@@ -52,10 +54,6 @@ public class ExperimentRunner {
         return results;
     }
 
-    /**
-     * Run LNS experiments with and without local search.
-     * Uses the average MSLS time as the time limit.
-     */
     public static Map<String, List<Solution>> runLNS(Instance instance) {
         Map<String, List<Solution>> results = new HashMap<>();
 
@@ -63,7 +61,6 @@ public class ExperimentRunner {
         System.out.println("Total nodes: " + instance.getTotalNodes());
         System.out.println("Nodes to select: " + instance.getNodesToSelect());
 
-        // First run MSLS to get average time
         int mslsRuns = 20;
         int mslsIterations = 200;
 
@@ -77,20 +74,71 @@ public class ExperimentRunner {
 
         int lnsRuns = 20;
 
-        // LNS with local search (steepest + edge swap)
-        // Using 50/50 weights for cost and edge (0.5, 0.5)
         System.out.println("\n=== Running LNS WITH Local Search ===");
         List<Solution> lnsWithLSSolutions = runAlgorithm(instance, lnsRuns,
                 i -> new LNS(averageTimeMsls, i, true, 0.3, 0.5, 0.5)
         );
         results.put("LNS_with_LS", lnsWithLSSolutions);
 
-        // LNS without local search
         System.out.println("\n=== Running LNS WITHOUT Local Search ===");
         List<Solution> lnsWithoutLSSolutions = runAlgorithm(instance, lnsRuns,
                 i -> new LNS(averageTimeMsls, i, false, 0.3, 0.5, 0.5)
         );
         results.put("LNS_without_LS", lnsWithoutLSSolutions);
+
+        return results;
+    }
+
+    public static Map<String, List<Solution>> runHybridEvolutionary(Instance instance) {
+        Map<String, List<Solution>> results = new HashMap<>();
+
+        System.out.println("\nRunning experiments for instance: " + instance.getName());
+        System.out.println("Total nodes: " + instance.getTotalNodes());
+        System.out.println("Nodes to select: " + instance.getNodesToSelect());
+
+        int mslsRuns = 20;
+        int mslsIterations = 200;
+
+        List<Solution> mslsSolutions = runAlgorithm(instance, mslsRuns,
+                i -> new MSLS(mslsIterations, i)
+        );
+        results.put("MSLS", mslsSolutions);
+
+        long averageTimeMsls = calculateAverageTime(mslsSolutions);
+        System.out.printf("\nAverage MSLS execution time: %d ms (using as time limit)%n", averageTimeMsls);
+
+        int runs = 20;
+        int populationSize = 20;
+
+        System.out.println("\n=== Running ILS ===");
+        List<Solution> ilsSolutions = runAlgorithm(instance, runs,
+                i -> new ILS(averageTimeMsls, i, 1)
+        );
+        results.put("ILS", ilsSolutions);
+
+        System.out.println("\n=== Running LNS with LS ===");
+        List<Solution> lnsSolutions = runAlgorithm(instance, runs,
+                i -> new LNS(averageTimeMsls, i, true, 0.3, 0.5, 0.5)
+        );
+        results.put("LNS_with_LS", lnsSolutions);
+
+        System.out.println("\n=== Running Hybrid Evolutionary (with LS) ===");
+        List<Solution> hybridSolutions = runAlgorithm(instance, runs,
+                i -> new HybridEvolutionary(averageTimeMsls, i, populationSize, true)
+        );
+        results.put("HybridEvo_withLS", hybridSolutions);
+
+        System.out.println("\n=== Running Dual Annealing (with LS) ===");
+        List<Solution> dualAnnealingSolutions = runAlgorithm(instance, runs,
+                i -> new DualAnnealing(averageTimeMsls, i, true)
+        );
+        results.put("DualAnnealing_withLS", dualAnnealingSolutions);
+
+        System.out.println("\n=== Running Dual Annealing (no LS) ===");
+        List<Solution> dualAnnealingNoLSSolutions = runAlgorithm(instance, runs,
+                i -> new DualAnnealing(averageTimeMsls, i, false)
+        );
+        results.put("DualAnnealing_noLS", dualAnnealingNoLSSolutions);
 
         return results;
     }

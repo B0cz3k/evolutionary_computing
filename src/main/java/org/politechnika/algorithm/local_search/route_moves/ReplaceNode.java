@@ -30,30 +30,29 @@ public class ReplaceNode implements RouteMove {
 
     @Override
     public double delta(Solution solution, Instance instance) {
-        int size = solution.getNodeIds().size();
-        int inNode = solution.getNodeIds().get(inSolutionNodeIndex);
-        Integer prev = (inSolutionNodeIndex == 0) ? solution.getNodeIds().getLast()
-                : solution.getNodeIds().get(inSolutionNodeIndex - 1);
-        Integer next = (inSolutionNodeIndex == size - 1) ? solution.getNodeIds().getFirst()
-                : solution.getNodeIds().get(inSolutionNodeIndex + 1);
+        int size = solution.size();
+        int inNode = solution.getNodeAt(inSolutionNodeIndex);
+        int prev = (inSolutionNodeIndex == 0) ? solution.getNodeAt(size - 1)
+                : solution.getNodeAt(inSolutionNodeIndex - 1);
+        int next = (inSolutionNodeIndex == size - 1) ? solution.getNodeAt(0)
+                : solution.getNodeAt(inSolutionNodeIndex + 1);
 
-        return -instance.getDistance(prev,inNode) -
-                        instance.getDistance(inNode,next) -
-                        instance.getNode(inNode).getCost() +
-                        instance.getNode(outSolutionNode).getCost() +
-                        instance.getDistance(prev,outSolutionNode) +
-                        instance.getDistance(outSolutionNode,next);
+        return -instance.getDistance(prev, inNode) -
+                instance.getDistance(inNode, next) -
+                instance.getNode(inNode).getCost() +
+                instance.getNode(outSolutionNode).getCost() +
+                instance.getDistance(prev, outSolutionNode) +
+                instance.getDistance(outSolutionNode, next);
     }
 
     @Override
     public Solution applyMove(Solution solution, Instance instance) {
-        List<Integer> newIds = new ArrayList<>(solution.getNodeIds());
+        // Use getNodeIds() since we need to modify the list
+        List<Integer> newIds = solution.getNodeIds();
         newIds.set(inSolutionNodeIndex, outSolutionNode);
 
-//        if (solution.getObjectiveValue() + delta(solution, instance) != ObjectiveFunction.calculate(instance,newIds)){
-//            throw new IllegalStateException(String.format("ReplaceNode: Objective value does not match %f != %f",solution.getObjectiveValue() - delta(solution, instance) , ObjectiveFunction.calculate(instance,newIds)));
-//        }
-        return new Solution(newIds, solution.getObjectiveValue() + delta(solution, instance),solution.getAlgorithmName(),newIds.getFirst());
+        double newObjective = solution.getObjectiveValue() + delta(solution, instance);
+        return new Solution(newIds, newObjective, solution.getAlgorithmName(), newIds.getFirst());
     }
 
 }

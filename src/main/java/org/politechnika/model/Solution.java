@@ -23,8 +23,33 @@ public class Solution {
         this.executionTimeMs = executionTimeMs;
     }
 
+    /**
+     * Returns a copy of the node IDs list. Use this when you need to modify the list.
+     */
     public List<Integer> getNodeIds() {
         return new ArrayList<>(nodeIds);
+    }
+    
+    /**
+     * Returns an unmodifiable view of the node IDs list. 
+     * Use this for read-only access (much faster than getNodeIds()).
+     */
+    public List<Integer> getNodeIdsReadOnly() {
+        return nodeIds;
+    }
+    
+    /**
+     * Get node ID at specific index. Faster than getNodeIds().get(i).
+     */
+    public int getNodeAt(int index) {
+        return nodeIds.get(index);
+    }
+    
+    /**
+     * Get size of solution. Faster than getNodeIds().size().
+     */
+    public int size() {
+        return nodeIds.size();
     }
 
     public double getObjectiveValue() {
