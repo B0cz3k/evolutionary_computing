@@ -86,6 +86,43 @@ public class ExperimentRunner {
         );
         results.put("LNS_without_LS", lnsWithoutLSSolutions);
 
+        results.put("GreedyRegret_NN",  runAlgorithm(instance,new RegretK2NNAny(0.5,0.5)));
+
+        results.put("LocalSearch-Random-edge-steepest",runAlgorithm(instance,new LocalSearch(new RandomSolution(42),"edge","steepest")));
+        return results;
+    }
+
+    public static Map<String, List<Solution>> runDualAnnealing(Instance instance) {
+        Map<String, List<Solution>> results = new HashMap<>();
+
+        System.out.println("\nRunning experiments for instance: " + instance.getName());
+        System.out.println("Total nodes: " + instance.getTotalNodes());
+        System.out.println("Nodes to select: " + instance.getNodesToSelect());
+
+        int mslsRuns = 20;
+        int mslsIterations = 200;
+
+        List<Solution> mslsSolutions = runAlgorithm(instance, mslsRuns,
+                i -> new MSLS(mslsIterations, i)
+        );
+        results.put("MSLS", mslsSolutions);
+
+        long averageTimeMsls = calculateAverageTime(mslsSolutions);
+        System.out.printf("\nAverage MSLS execution time: %d ms (using as time limit)%n", averageTimeMsls);
+
+        int runs = 20;
+        System.out.println("\n=== Running Dual Annealing (with LS) ===");
+        List<Solution> dualAnnealingSolutions = runAlgorithm(instance, runs,
+                i -> new DualAnnealing(averageTimeMsls, i, true)
+        );
+        results.put("DualAnnealing_withLS", dualAnnealingSolutions);
+
+        System.out.println("\n=== Running Dual Annealing (no LS) ===");
+        List<Solution> dualAnnealingNoLSSolutions = runAlgorithm(instance, runs,
+                i -> new DualAnnealing(averageTimeMsls, i, false)
+        );
+        results.put("DualAnnealing_noLS", dualAnnealingNoLSSolutions);
+
         return results;
     }
 
@@ -115,12 +152,24 @@ public class ExperimentRunner {
                 i -> new ILS(averageTimeMsls, i, 1)
         );
         results.put("ILS", ilsSolutions);
+        System.out.println("\n=== Running LNS without LS ===");
+        List<Solution> lnsSolutions = runAlgorithm(instance, runs,
+                i -> new LNS(averageTimeMsls, i, false, 0.3, 0.5, 0.5)
+        );
+        results.put("LNS_without_LS", lnsSolutions);
 
         System.out.println("\n=== Running LNS with LS ===");
-        List<Solution> lnsSolutions = runAlgorithm(instance, runs,
+
+        List<Solution> lnsSolutions2 = runAlgorithm(instance, runs,
                 i -> new LNS(averageTimeMsls, i, true, 0.3, 0.5, 0.5)
         );
-        results.put("LNS_with_LS", lnsSolutions);
+        results.put("LNS_with_LS", lnsSolutions2);
+
+        System.out.println("\n=== Running Hybrid Evolutionary (without LS) ===");
+        List<Solution> hybridSolutionsNoLS = runAlgorithm(instance, runs,
+                i -> new HybridEvolutionary(averageTimeMsls, i, populationSize, false)
+        );
+        results.put("HybridEvo_withoutLS", hybridSolutionsNoLS);
 
         System.out.println("\n=== Running Hybrid Evolutionary (with LS) ===");
         List<Solution> hybridSolutions = runAlgorithm(instance, runs,
@@ -128,21 +177,31 @@ public class ExperimentRunner {
         );
         results.put("HybridEvo_withLS", hybridSolutions);
 
-        System.out.println("\n=== Running Dual Annealing (with LS) ===");
-        List<Solution> dualAnnealingSolutions = runAlgorithm(instance, runs,
-                i -> new DualAnnealing(averageTimeMsls, i, true)
-        );
-        results.put("DualAnnealing_withLS", dualAnnealingSolutions);
-
-        System.out.println("\n=== Running Dual Annealing (no LS) ===");
-        List<Solution> dualAnnealingNoLSSolutions = runAlgorithm(instance, runs,
-                i -> new DualAnnealing(averageTimeMsls, i, false)
-        );
-        results.put("DualAnnealing_noLS", dualAnnealingNoLSSolutions);
+//        System.out.println("\n=== Running Dual Annealing (with LS) ===");
+//        List<Solution> dualAnnealingSolutions = runAlgorithm(instance, runs,
+//                i -> new DualAnnealing(averageTimeMsls, i, true)
+//        );
+//        results.put("DualAnnealing_withLS", dualAnnealingSolutions);
+//
+//        System.out.println("\n=== Running Dual Annealing (no LS) ===");
+//        List<Solution> dualAnnealingNoLSSolutions = runAlgorithm(instance, runs,
+//                i -> new DualAnnealing(averageTimeMsls, i, false)
+//        );
+//        results.put("DualAnnealing_noLS", dualAnnealingNoLSSolutions);
 
         return results;
     }
 
+    public static Map<String, List<Solution>> runLS(Instance instance, String mode) {
+        Map<String, List<Solution>> results = new HashMap<>();
+
+        System.out.println("\nRunning experiments for instance: " + instance.getName());
+        System.out.println("Total nodes: " + instance.getTotalNodes());
+        System.out.println("Nodes to select: " + instance.getNodesToSelect());
+
+        results.put(String.format("LocalSearch-Random-edge-%s",mode),runAlgorithm(instance,new LocalSearch(new RandomSolution(42),"edge",mode)));
+        return results;
+    }
     private static List<Solution> runAlgorithm(Instance instance, int runs, Function<Integer, Algorithm> algorithmFactory) {
         List<Solution> solutions = new ArrayList<>();
         int totalNodes = instance.getTotalNodes();
@@ -165,7 +224,7 @@ public class ExperimentRunner {
                     solution.getObjectiveValue(),
                     solution.getAlgorithmName(),
                     solution.getStartNode(),
-                    executionTimeMs
+                    executionTimeMs,solution.getIterations()
             );
             solutions.add(timedSolution);
 
@@ -192,7 +251,8 @@ public class ExperimentRunner {
                     solution.getObjectiveValue(),
                     solution.getAlgorithmName(),
                     solution.getStartNode(),
-                    executionTimeMs
+                    executionTimeMs,
+                    solution.getIterations()
             );
             solutions.add(timedSolution);
         }

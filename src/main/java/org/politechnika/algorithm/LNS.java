@@ -18,7 +18,6 @@ public class LNS implements Algorithm {
     private final double destructionRate;
     private final double costWeight;
     private final double edgeWeight;
-    private int iterations = 0;
 
     public LNS(long timeLimitMs, long seed, boolean useLocalSearchAfterRepair,
                double destructionRate, double costWeight, double edgeWeight) {
@@ -38,7 +37,7 @@ public class LNS implements Algorithm {
     public Solution solve(Instance instance, int startNode) {
         Random random = new Random(seed);
         long startTime = System.currentTimeMillis();
-        iterations = 0;
+        int iterations = 0;
 
         RandomSolution randomSolution = new RandomSolution(seed);
         Solution initialSolution = randomSolution.solve(instance, startNode);
@@ -73,7 +72,8 @@ public class LNS implements Algorithm {
             bestSolution.getObjectiveValue(),
             getName(),
             startNode,
-            executionTime
+            executionTime,
+                iterations
         );
     }
 
@@ -181,12 +181,8 @@ public class LNS implements Algorithm {
     @Override
     public String getName() {
         String lsStatus = useLocalSearchAfterRepair ? "with_LS" : "without_LS";
-        return String.format("LNS_%s (time=%dms, destruct=%.0f%%, cost_w=%.2f, edge_w=%.2f, iters=%d)",
-                             lsStatus, timeLimitMs, destructionRate * 100, costWeight, edgeWeight, iterations);
-    }
-
-    public int getIterations() {
-        return iterations;
+        return String.format("LNS_%s (time=%dms, destruct=%.0f%%, cost_w=%.2f, edge_w=%.2f)",
+                             lsStatus, timeLimitMs, destructionRate * 100, costWeight, edgeWeight);
     }
 }
 

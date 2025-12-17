@@ -81,7 +81,7 @@ public class HybridEvolutionary implements Algorithm {
             bestSolution.getObjectiveValue(),
             getName(),
             startNode,
-            executionTime
+            executionTime, generations
         );
     }
 

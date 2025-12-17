@@ -46,7 +46,7 @@ public class MainAnnealing {
 
                 Instance instance = InstanceReader.readInstance(fileName);
 
-                Map<String, List<Solution>> results = ExperimentRunner.runHybridEvolutionary(instance);
+                Map<String, List<Solution>> results = ExperimentRunner.runDualAnnealing(instance);
 
                 ExperimentRunner.printSummary(instance.getName(), results);
 

@@ -10,17 +10,23 @@ public class Solution {
     private final String algorithmName;
     private final int startNode;
     private final long executionTimeMs;
+    private final long iterations;
 
     public Solution(List<Integer> nodeIds, double objectiveValue, String algorithmName, int startNode) {
-        this(nodeIds, objectiveValue, algorithmName, startNode, 0);
+        this(nodeIds, objectiveValue, algorithmName, startNode, 0,0);
     }
 
-    public Solution(List<Integer> nodeIds, double objectiveValue, String algorithmName, int startNode, long executionTimeMs) {
+    public Solution(List<Integer> nodeIds, double objectiveValue, String algorithmName, int startNode, long executionTimeMs, long iters) {
         this.nodeIds = new ArrayList<>(nodeIds);
         this.objectiveValue = objectiveValue;
         this.algorithmName = algorithmName;
         this.startNode = startNode;
         this.executionTimeMs = executionTimeMs;
+        this.iterations = iters;
+    }
+
+    public long getIterations() {
+        return iterations;
     }
 
     /**

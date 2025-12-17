@@ -147,7 +147,7 @@ public class DualAnnealing implements Algorithm {
             bestSolution.getObjectiveValue(),
             getName(),
             startNode,
-            executionTime
+            executionTime,totalIterations
         );
     }
 

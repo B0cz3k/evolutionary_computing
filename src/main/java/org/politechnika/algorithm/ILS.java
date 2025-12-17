@@ -16,7 +16,6 @@ public class ILS implements Algorithm {
     private final long timeLimitMs;
     private final long seed;
     private final int perturbationStrength;
-    private int localSearchRuns = 0;
 
     public ILS(long timeLimitMs, long seed, int perturbationStrength) {
         this.timeLimitMs = timeLimitMs;
@@ -28,12 +27,11 @@ public class ILS implements Algorithm {
     public Solution solve(Instance instance, int startNode) {
         Random random = new Random(seed);
         long startTime = System.currentTimeMillis();
-        localSearchRuns = 0;
+        int localSearchRuns = 0;
 
         RandomSolution randomSolution = new RandomSolution(seed);
         LocalSearch localSearch = new LocalSearchLM(randomSolution);
         Solution currentSolution = localSearch.solve(instance, startNode);
-        localSearchRuns++;
         
         Solution bestSolution = currentSolution;
 
@@ -56,7 +54,7 @@ public class ILS implements Algorithm {
             bestSolution.getNodeIds(),
             bestSolution.getObjectiveValue(),
             getName(),
-            startNode
+            startNode,0,localSearchRuns
         );
     }
 
@@ -110,11 +108,8 @@ public class ILS implements Algorithm {
     
     @Override
     public String getName() {
-        return String.format("ILS (timeLimit=%dms, pertStrength=%d, runs=%d)", 
-                             timeLimitMs, perturbationStrength, localSearchRuns);
+        return String.format("ILS (timeLimit=%dms, pertStrength=%d)",
+                             timeLimitMs, perturbationStrength);
     }
-    
-    public int getLocalSearchRuns() {
-        return localSearchRuns;
-    }
+
 }

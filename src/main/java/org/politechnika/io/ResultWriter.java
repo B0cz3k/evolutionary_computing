@@ -26,6 +26,10 @@ public class ResultWriter {
         long maxTime = Long.MIN_VALUE;
         long sumTime = 0;
 
+        int minIters = Integer.MAX_VALUE;
+        int maxIters = Integer.MIN_VALUE;
+        int sumIters = 0;
+
         Solution bestSolution = null;
 
         for (Solution solution : solutions) {
@@ -47,10 +51,20 @@ public class ResultWriter {
             if (time > maxTime) {
                 maxTime = time;
             }
+
+            int iters = (int) solution.getIterations();
+            sumIters += iters;
+            if (iters < minIters) {
+                minIters = iters;
+            }
+            if (iters > maxIters) {
+                maxIters = iters;
+            }
         }
 
         double avg = sum / solutions.size();
         double avgTime = (double) sumTime / solutions.size();
+        double avgIters = (double) sumIters / solutions.size();
 
         assert bestSolution != null;
         System.out.println("Instance: " + instanceName);
@@ -62,6 +76,9 @@ public class ResultWriter {
         System.out.printf("Min Time: %d ms%n", minTime);
         System.out.printf("Max Time: %d ms%n", maxTime);
         System.out.printf("Avg Time: %.2f ms%n", avgTime);
+        System.out.printf("Min Iterations: %d %n", minIters);
+        System.out.printf("Max Iterations: %d %n", maxIters);
+        System.out.printf("Avg Iterations: %.2f %n", avgIters);
         System.out.println("Best solution nodes: " + bestSolution.getNodeIds());
     }
 
