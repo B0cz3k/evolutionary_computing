@@ -1,12 +1,6 @@
 package org.politechnika.experiment;
 
-import org.politechnika.algorithm.Algorithm;
-import org.politechnika.algorithm.DualAnnealing;
-import org.politechnika.algorithm.HybridEvolutionary;
-import org.politechnika.algorithm.ILS;
-import org.politechnika.algorithm.LNS;
-import org.politechnika.algorithm.MSLS;
-import org.politechnika.algorithm.RandomSolution;
+import org.politechnika.algorithm.*;
 import org.politechnika.algorithm.greedy_heuristics.*;
 import org.politechnika.algorithm.greedy_regret.*;
 import org.politechnika.algorithm.local_search.*;
@@ -99,6 +93,40 @@ public class ExperimentRunner {
         System.out.println("Total nodes: " + instance.getTotalNodes());
         System.out.println("Nodes to select: " + instance.getNodesToSelect());
 
+//        int mslsRuns = 20;
+//        int mslsIterations = 200;
+//
+//        List<Solution> mslsSolutions = runAlgorithm(instance, mslsRuns,
+//                i -> new MSLS(mslsIterations, i)
+//        );
+//        results.put("MSLS", mslsSolutions);
+
+        long averageTimeMsls = 3100;//calculateAverageTime(mslsSolutions);
+        System.out.printf("\nAverage MSLS execution time: %d ms (using as time limit)%n", averageTimeMsls);
+
+        int runs = 20;
+        System.out.println("\n=== Running Dual Annealing (with LS) ===");
+        List<Solution> dualAnnealingSolutions = runAlgorithm(instance, runs,
+                i -> new DualAnnealing(averageTimeMsls, i, true)
+        );
+        results.put("DualAnnealing_withLS", dualAnnealingSolutions);
+
+//        System.out.println("\n=== Running Dual Annealing (no LS) ===");
+//        List<Solution> dualAnnealingNoLSSolutions = runAlgorithm(instance, runs,
+//                i -> new DualAnnealing(averageTimeMsls, i, false)
+//        );
+//        results.put("DualAnnealing_noLS", dualAnnealingNoLSSolutions);
+
+        return results;
+    }
+
+    public static Map<String, List<Solution>> runHybridEvo2(Instance instance) {
+        Map<String, List<Solution>> results = new HashMap<>();
+
+        System.out.println("\nRunning experiments for instance: " + instance.getName());
+        System.out.println("Total nodes: " + instance.getTotalNodes());
+        System.out.println("Nodes to select: " + instance.getNodesToSelect());
+
         int mslsRuns = 20;
         int mslsIterations = 200;
 
@@ -113,15 +141,21 @@ public class ExperimentRunner {
         int runs = 20;
         System.out.println("\n=== Running Dual Annealing (with LS) ===");
         List<Solution> dualAnnealingSolutions = runAlgorithm(instance, runs,
-                i -> new DualAnnealing(averageTimeMsls, i, true)
+                i -> {
+                    try {
+                        return new HybridEvolutionary2(averageTimeMsls, i, 20,5,true);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
         );
         results.put("DualAnnealing_withLS", dualAnnealingSolutions);
 
-        System.out.println("\n=== Running Dual Annealing (no LS) ===");
-        List<Solution> dualAnnealingNoLSSolutions = runAlgorithm(instance, runs,
-                i -> new DualAnnealing(averageTimeMsls, i, false)
-        );
-        results.put("DualAnnealing_noLS", dualAnnealingNoLSSolutions);
+//        System.out.println("\n=== Running Dual Annealing (no LS) ===");
+//        List<Solution> dualAnnealingNoLSSolutions = runAlgorithm(instance, runs,
+//                i -> new DualAnnealing(averageTimeMsls, i, false)
+//        );
+//        results.put("DualAnnealing_noLS", dualAnnealingNoLSSolutions);
 
         return results;
     }

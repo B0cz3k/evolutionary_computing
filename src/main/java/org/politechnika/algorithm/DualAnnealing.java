@@ -1,6 +1,10 @@
 package org.politechnika.algorithm;
 
+import org.politechnika.algorithm.greedy_heuristics.NearestNeighborAnyPosition;
 import org.politechnika.algorithm.local_search.LocalSearchLM;
+import org.politechnika.algorithm.local_search.route_moves.ReplaceNode;
+import org.politechnika.algorithm.local_search.route_moves.SwapEdges;
+import org.politechnika.algorithm.local_search.route_moves.SwapNodes;
 import org.politechnika.model.Instance;
 import org.politechnika.model.Solution;
 import org.politechnika.util.ObjectiveFunction;
@@ -47,7 +51,7 @@ public class DualAnnealing implements Algorithm {
         restarts = 0;
         acceptedMoves = 0;
 
-        Solution currentSolution = generateRandomSolution(instance, random);
+        Solution currentSolution = new NearestNeighborAnyPosition().solve(instance,random.nextInt(instance.getTotalNodes()));
 
         if (useLocalSearch) {
             currentSolution = applyLocalSearch(currentSolution, instance);
@@ -66,8 +70,9 @@ public class DualAnnealing implements Algorithm {
             Solution neighbor = generateNeighbor(currentSolution, instance, random, temperature);
 
             double delta = neighbor.getObjectiveValue() - currentSolution.getObjectiveValue();
+            boolean acceptWorse = random.nextDouble() < Math.exp(-delta / temperature);
 
-            if (delta < 0 || random.nextDouble() < Math.exp(-delta / temperature)) {
+            if (delta < 0 || acceptWorse) {
                 currentSolution = neighbor;
                 acceptedMoves++;
 
@@ -79,12 +84,9 @@ public class DualAnnealing implements Algorithm {
                         bestSolution = localBest;
 
                         if (useLocalSearch) {
-                            Solution refined = applyLocalSearch(bestSolution, instance);
-                            if (refined.getObjectiveValue() < bestSolution.getObjectiveValue()) {
-                                bestSolution = refined;
-                                localBest = refined;
-                                currentSolution = refined;
-                            }
+                            bestSolution = applyLocalSearch(bestSolution, instance);
+                            localBest = bestSolution;
+                            currentSolution = bestSolution;
                         }
                     }
                 } else {
@@ -107,18 +109,15 @@ public class DualAnnealing implements Algorithm {
             }
 
             // Perform restart
-            if (shouldRestart) {
+            if (shouldRestart || random.nextDouble() < 0.5) {
                 restarts++;
                 temperature = initialTemp;
                 iterWithoutImprovement = 0;
-                
-                // Restart from a new random solution or perturbed best
+
                 if (random.nextDouble() < 0.5) {
-                    // Restart from random solution
-                    currentSolution = generateRandomSolution(instance, random);
-                } else {
-                    // Restart from perturbed best solution
                     currentSolution = perturbSolution(bestSolution, instance, random);
+                }else{
+                    currentSolution = perturbSolution(localBest,instance,random);
                 }
                 
                 if (useLocalSearch) {
@@ -147,7 +146,7 @@ public class DualAnnealing implements Algorithm {
             bestSolution.getObjectiveValue(),
             getName(),
             startNode,
-            executionTime,totalIterations
+            executionTime, totalIterations
         );
     }
 
@@ -159,19 +158,8 @@ public class DualAnnealing implements Algorithm {
     }
 
     private Solution generateRandomSolution(Instance instance, Random random) {
-        int nodesToSelect = instance.getNodesToSelect();
-        int totalNodes = instance.getTotalNodes();
-        
-        List<Integer> allNodes = new ArrayList<>();
-        for (int i = 0; i < totalNodes; i++) {
-            allNodes.add(i);
-        }
-        Collections.shuffle(allNodes, random);
-        
-        List<Integer> selectedNodes = new ArrayList<>(allNodes.subList(0, nodesToSelect));
-        double objective = ObjectiveFunction.calculate(instance, selectedNodes);
-        
-        return new Solution(selectedNodes, objective, "DualAnnealing", selectedNodes.get(0));
+        Solution randomSol = new RandomSolution(random.nextLong()).solve(instance,0);
+        return new Solution(randomSol.getNodeIds(), randomSol.getObjectiveValue(), "DualAnnealing", randomSol.getStartNode());
     }
 
     private Solution generateNeighbor(Solution current, Instance instance, Random random, double temperature) {
@@ -183,24 +171,14 @@ public class DualAnnealing implements Algorithm {
         double tempRatio = temperature / initialTemp;
         
         List<Integer> newNodes;
-        
-        if (moveSelector < 0.4) {
+
+        if (moveSelector < 0.2) {
             // Move 1: Swap two nodes in the tour (2-opt style)
-            newNodes = new ArrayList<>(nodes);
-            int i = random.nextInt(size);
-            int j = random.nextInt(size);
-            while (j == i) j = random.nextInt(size);
-            Collections.swap(newNodes, i, j);
-            
-        } else if (moveSelector < 0.7) {
+            newNodes = new SwapNodes(random.nextInt(size),random.nextInt(size)).applyMove(current,instance).getNodeIds();
+        } else if (moveSelector < 0.6) {
             // Move 2: Reverse a segment (2-opt)
-            newNodes = new ArrayList<>(nodes);
-            int i = random.nextInt(size);
-            int j = random.nextInt(size);
-            if (i > j) { int tmp = i; i = j; j = tmp; }
-            Collections.reverse(newNodes.subList(i, j + 1));
-            
-        } else if (moveSelector < 0.85) {
+            newNodes = new SwapEdges(random.nextInt(size),random.nextInt(size-1)).applyMove(current,instance).getNodeIds();
+        } else if (moveSelector < 0.8) {
             // Move 3: Replace a node with an outside node
             newNodes = new ArrayList<>(nodes);
             Set<Integer> usedNodes = new HashSet<>(nodes);
@@ -235,19 +213,38 @@ public class DualAnnealing implements Algorithm {
         }
         
         double objective = ObjectiveFunction.calculate(instance, newNodes);
-        return new Solution(newNodes, objective, "DualAnnealing", newNodes.get(0));
+        return new Solution(newNodes, objective, "DualAnnealing", newNodes.getFirst());
     }
 
     private Solution perturbSolution(Solution solution, Instance instance, Random random) {
-        Solution perturbed = solution;
+        List<Integer> currentNodes = new ArrayList<>(solution.getNodeIds());
+        int size = currentNodes.size();
 
-        // Apply 3-7 random moves
-        int numMoves = 3 + random.nextInt(5);
-        for (int i = 0; i < numMoves; i++) {
-            perturbed = generateNeighbor(perturbed, instance, random, initialTemp);
-        }
-        
-        return perturbed;
+        int quarter = size / 4;
+        int pos1 = 1 + random.nextInt(quarter);
+        int pos2 = pos1 + 1 + random.nextInt(quarter);
+        int pos3 = pos2 + 1 + random.nextInt(quarter);
+
+        List<Integer> segA = currentNodes.subList(0, pos1);
+        List<Integer> segB = currentNodes.subList(pos1, pos2);
+        List<Integer> segC = currentNodes.subList(pos2, pos3);
+        List<Integer> segD = currentNodes.subList(pos3, size);
+
+        // A -> D -> C -> B
+        List<Integer> newIds = new ArrayList<>();
+        newIds.addAll(segA);
+        newIds.addAll(segD); // Swapped
+        newIds.addAll(segC); // Original order preserved in segment
+        newIds.addAll(segB); // Swapped
+
+        double objectiveValue = org.politechnika.util.ObjectiveFunction.calculate(instance, newIds);
+
+        return new Solution(
+                newIds,
+                objectiveValue,
+                "DualAnnealing",
+                solution.getStartNode()
+        );
     }
 
     private Solution applyLocalSearch(Solution solution, Instance instance) {

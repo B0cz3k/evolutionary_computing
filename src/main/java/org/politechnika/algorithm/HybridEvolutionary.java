@@ -8,12 +8,12 @@ import org.politechnika.util.ObjectiveFunction;
 import java.util.*;
 
 public class HybridEvolutionary implements Algorithm {
-    private final long timeLimitMs;
-    private final long seed;
-    private final int populationSize;
-    private final boolean useLocalSearchAfterRecombination;
+    final long timeLimitMs;
+    final long seed;
+    final int populationSize;
+    final boolean useLocalSearchAfterRecombination;
     
-    private int generations = 0;
+    int generations = 0;
     private int localSearchCalls = 0;
 
     public HybridEvolutionary(long timeLimitMs, long seed, int populationSize, boolean useLocalSearchAfterRecombination) {
@@ -85,7 +85,7 @@ public class HybridEvolutionary implements Algorithm {
         );
     }
 
-    private List<Solution> initializePopulation(Instance instance, Random random) {
+    List<Solution> initializePopulation(Instance instance, Random random) {
         List<Solution> population = new ArrayList<>();
 
         int attempts = 0;
@@ -107,7 +107,7 @@ public class HybridEvolutionary implements Algorithm {
         return population;
     }
 
-    private Solution recombine(Solution parent1, Solution parent2, Instance instance, Random random) {
+    Solution recombine(Solution parent1, Solution parent2, Instance instance, Random random) {
         List<Integer> nodes1 = parent1.getNodeIds();
         List<Integer> nodes2 = parent2.getNodeIds();
         
@@ -224,7 +224,7 @@ public class HybridEvolutionary implements Algorithm {
         return result;
     }
 
-    private Solution applyLocalSearch(Solution solution, Instance instance) {
+    Solution applyLocalSearch(Solution solution, Instance instance) {
         Algorithm wrapper = new Algorithm() {
             @Override
             public Solution solve(Instance inst, int start) {
@@ -241,7 +241,7 @@ public class HybridEvolutionary implements Algorithm {
         return localSearch.solve(instance, solution.getStartNode());
     }
 
-    private boolean isUnique(Solution solution, List<Solution> population) {
+    boolean isUnique(Solution solution, List<Solution> population) {
         for (Solution s : population) {
             if (Math.abs(s.getObjectiveValue() - solution.getObjectiveValue()) < 0.001) {
                 return false;
@@ -250,7 +250,7 @@ public class HybridEvolutionary implements Algorithm {
         return true;
     }
 
-    private int findWorstIndex(List<Solution> population) {
+    int findWorstIndex(List<Solution> population) {
         int worstIdx = 0;
         double worstValue = population.getFirst().getObjectiveValue();
         
@@ -264,7 +264,7 @@ public class HybridEvolutionary implements Algorithm {
         return worstIdx;
     }
 
-    private Solution getBest(List<Solution> population) {
+    Solution getBest(List<Solution> population) {
         Solution best = population.getFirst();
         for (Solution s : population) {
             if (s.getObjectiveValue() < best.getObjectiveValue()) {
